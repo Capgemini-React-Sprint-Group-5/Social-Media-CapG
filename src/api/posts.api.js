@@ -1,61 +1,45 @@
-import client from "./client";
+import client from "./client.js";
+import { getAllUsers } from "./users.api.js";
 
-/* ===========================
-   Posts
-=========================== */
+// GET /Post/:postId
+export const getPostById = async (postId) =>
+  (await client.get(`/Post/${postId}`)).data;
 
-/** GET /Posts */
-export const getAllPosts = () =>
-  client.get("/Posts");
+// POST /Post
+export const createPost = (postData) => client.post("/Post", postData);
 
-/** GET /Posts/:postID */
-export const getPostById = (postId) =>
-  client.get(`/Posts/${postId}`);
-
-/** GET /Posts?userID= */
-export const getPostsByUser = (userId) =>
-  client.get("/Posts", {
-    params: {
-      userID: Number(userId),
-    },
-  });
-
-/** Create Post */
-export const createPost = (postData) =>
-  client.post("/Posts", postData);
-
-/** Update Post */
+// PUT /Post/update/:postId
 export const updatePost = (postId, postData) =>
-  client.put(`/Posts/${postId}`, postData);
+  client.put(`/Post/update/${postId}`, postData);
 
-/** Delete Post */
-export const deletePost = (postId) =>
-  client.delete(`/Posts/${postId}`);
+// DELETE /Post/delete/:postId
+export const deletePost = (postId) => client.delete(`/Post/delete/${postId}`);
 
-/* ===========================
-   Post Relations
-=========================== */
+// GET /Users/:userId/posts (per user)
+export const getPostsByUser = async (userId) =>
+  (await client.get(`/Users/${userId}/posts`)).data;
 
-/** Comments of a Post */
-export const getPostComments = (postId) =>
-  client.get("/Comments", {
-    params: {
-      postID: Number(postId),
-    },
-  });
+// no all-posts endpoint — composed across every user's posts
+// export const getAllPosts = async () => {
+//   const users = await getAllUsers();
+//   const posts = await Promise.all(users.map((u) => getPostsByUser(u.userID)));
+//   return posts.flat();
+// };
 
-/** Likes of a Post */
-export const getPostLikes = (postId) =>
-  client.get("/Likes", {
-    params: {
-      postID: Number(postId),
-    },
-  });
+export const getAllPosts = async (postId) => (await client.get(`/Posts`)).data;
 
-/** Search posts by content */
-export const searchPosts = (text) =>
-  client.get("/Posts", {
-    params: {
-      q: text,
-    },
-  });
+// no search endpoint — filtered client-side over getAllPosts
+export const searchPosts = async (text) => {
+  const posts = await getAllPosts();
+  return posts.filter((p) =>
+    p.content?.toLowerCase().includes(text.toLowerCase()),
+  );
+};
+
+// GET /Posts/:postId/comments
+export const getPostComments = async (postId) =>
+  (await client.get(`/Posts/${postId}/comments`)).data;
+
+// GET /Posts/:postId/likes
+export const getPostLikes = async (postId) =>
+  (await client.get(`/Posts/${postId}/likes`)).data;

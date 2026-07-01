@@ -10,8 +10,6 @@ import * as usersApi from "../api/users.api.js";
  *   useMutation → write/delete, then invalidate affected query keys
  */
 
-// ── FULLY WORKED EXAMPLE ──────────────────────────────────────────────────
-
 /**
  * Fetch a single user by ID.
  * Usage: const { data: user, isLoading, error } = useUser(userId)
@@ -46,6 +44,22 @@ export function useUserSearch(username) {
     queryKey: queryKeys.users.search(username),
     queryFn: () => usersApi.searchUsers(username),
     enabled: !!username && username.trim().length > 0,
+  });
+}
+
+/**
+ * Login user (Sign in).
+ * Usage:
+ *   const { mutate: login, isPending } = useLoginUser()
+ *   login({ username, password })
+ */
+export function useLoginUser() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (credentials) => usersApi.loginUser(credentials),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.all() });
+    },
   });
 }
 

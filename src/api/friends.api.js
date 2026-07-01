@@ -1,105 +1,62 @@
 import client from "./client.js";
+import { getAllUsers } from "./users.api.js";
 
-/**
- * api/friends.api.js  — Owner: C
- */
-
-/* GET /api/users/:userId/friends */
+// GET /Users/:userId/friends (accepted only, enriched with user info)
 export const getFriends = async (userId) => {
-  const [friendsData, usersData] = await Promise.all([
-    client.get("/Friends"),
-    client.get("/Users")
+  const [friends, users] = await Promise.all([
+    (await client.get(`/Users/${userId}/friends`)).data,
+    getAllUsers(),
   ]);
-
-  const userIdNum = Number(userId);
-
-  const userFriendships = friendsData.filter(f => 
-    f.status === "accepted" && 
-    (Number(f.userID1) === userIdNum || Number(f.userID2) === userIdNum)
-  );
-
-  return userFriendships.map(f => {
-    const otherUserId = Number(f.userID1) === userIdNum ? Number(f.userID2) : Number(f.userID1);
-    const otherUser = usersData.find(u => Number(u.userID) === otherUserId);
-    return {
-      friendshipId: f.friendshipID,
-      friendId: otherUserId,
-      userId: otherUserId,
-      username: otherUser?.username || "Unknown",
-      email: otherUser?.email || "",
-      profile_picture: otherUser?.profile_picture || ""
-    };
-  });
-};
-
-/* POST /Friends */
-export const addFriend = async (userId, friendId) => {
-  const friendships = await client.get("/Friends");
-  const existing = friendships.find(f => 
-    (Number(f.userID1) === Number(userId) && Number(f.userID2) === Number(friendId)) ||
-    (Number(f.userID1) === Number(friendId) && Number(f.userID2) === Number(userId))
-  );
-
-  if (existing) {
-    return client.put(`/Friends/${existing.friendshipID}`, {
-      ...existing,
-      status: "accepted"
+  return friends
+    .filter((f) => f.status === "accepted")
+    .map((f) => {
+      const u = users.find((u) => String(u.userID) === String(f.friendId));
+      return {
+        friendshipId: f.friendshipID,
+        friendId: f.friendId,
+        username: u?.username,
+        email: u?.email,
+        profile_picture: u?.profile_picture,
+      };
     });
-  } else {
-    return client.post("/Friends", {
-      friendshipID: Date.now(),
-      userID1: Number(userId),
-      userID2: Number(friendId),
-      status: "accepted"
-    });
-  }
 };
 
-/* DELETE /Friends/:friendshipID */
-export const removeFriend = async (userId, friendId) => {
-  const friendships = await client.get("/Friends");
-  const existing = friendships.find(f => 
-    (Number(f.userID1) === Number(userId) && Number(f.userID2) === Number(friendId)) ||
-    (Number(f.userID1) === Number(friendId) && Number(f.userID2) === Number(userId))
-  );
-  if (existing) {
-    return client.delete(`/Friends/${existing.friendshipID}`);
-  }
-};
-
-/* POST /Friends (pending) */
-export const sendFriendRequest = (userId, friendId) =>
-  client.post("/Friends", {
-    friendshipID: Date.now(),
-    userID1: Number(userId),
-    userID2: Number(friendId),
-    status: "pending"
-  });
-
-/* GET pending requests */
+// GET /Users/:userId/friend-requests/pending (requests received)
 export const getPendingRequests = async (userId) => {
-  const [friendsData, usersData] = await Promise.all([
-    client.get("/Friends"),
-    client.get("/Users")
+  const [pending, users] = await Promise.all([
+    (await client.get(`/Users/${userId}/friend-requests/pending`)).data,
+    getAllUsers(),
   ]);
-
-  const userIdNum = Number(userId);
-
-  const pendingFriendships = friendsData.filter(f => 
-    f.status === "pending" && 
-    Number(f.userID2) === userIdNum
-  );
-
-  return pendingFriendships.map(f => {
-    const senderId = Number(f.userID1);
-    const sender = usersData.find(u => Number(u.userID) === senderId);
-    return {
-      friendshipId: f.friendshipID,
-      friendId: senderId,
-      userId: senderId,
-      username: sender?.username || "Unknown",
-      email: sender?.email || "",
-      profile_picture: sender?.profile_picture || ""
-    };
-  });
+  return pending
+    .filter((f) => String(f.userID2) === String(userId))
+    .map((f) => {
+      const u = users.find((u) => String(u.userID) === String(f.userID1));
+      return {
+        friendshipId: f.friendshipID,
+        friendId: f.userID1,
+        username: u?.username,
+        email: u?.email,
+        profile_picture: u?.profile_picture,
+      };
+    });
 };
+
+// POST /Users/:userId/friend-requests/send/:friendId
+export const sendFriendRequest = (userId, friendId) =>
+  client.post(`/Users/${userId}/friend-requests/send/${friendId}`);
+
+// POST /Users/:userId/friends/:friendId (accepts a pending request, or adds directly)
+export const addFriend = (userId, friendId) =>
+  client.post(`/Users/${userId}/friends/${friendId}`);
+
+// DELETE /Users/:userId/friends/:friendId
+export const removeFriend = (userId, friendId) =>
+  client.delete(`/Users/${userId}/friends/${friendId}`);
+
+// GET /Friends/:friendshipId/messages
+export const getFriendMessages = async (friendshipId) =>
+  (await client.get(`/Friends/${friendshipId}/messages`)).data;
+
+// POST /Friends/:friendshipId/messages/send  — body: { senderID, message_text }
+export const sendFriendMessage = (friendshipId, messageData) =>
+  client.post(`/Friends/${friendshipId}/messages/send`, messageData);
