@@ -51,11 +51,12 @@ export default function LoginPage() {
     }
 
     const user = Array.isArray(searchResult) ? searchResult[0] : searchResult;
+    const userId = user?.userID || user?.userId || user?.id;
 
-    if (user?.userId) {
+    if (userId) {
       dispatch(
         setUser({
-          userId: user.userId,
+          userId: userId,
           username: user.username,
           email: user.email,
         }),

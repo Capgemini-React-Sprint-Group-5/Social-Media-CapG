@@ -39,9 +39,10 @@ export default function RegisterPage() {
       register(payload, {
         onSuccess: (data) => {
           // Store session — adjust field names to match actual API response
+          const userId = data?.userID || data?.userId || data?.id;
           dispatch(
             setUser({
-              userId: data?.userId,
+              userId: userId,
               username: values.username,
               email: values.email,
             }),

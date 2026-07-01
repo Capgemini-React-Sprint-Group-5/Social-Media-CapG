@@ -1,58 +1,129 @@
-import client from './client.js'
+import client from "./client";
 
-/**
- * api/users.api.js  — Owner: A
- * Raw API calls for the /api/users resource.
- * These are plain async functions — no React, no hooks.
- * TanStack Query hooks wrap these in src/hooks/useUsers.js
- */
+/* ===========================
+   Users
+=========================== */
 
-/** GET /api/users/all */
+/** GET /Users */
 export const getAllUsers = () =>
-  client.get('/api/users/all')
+  client.get("/Users");
 
-/** GET /api/users/:userId */
+/** GET /Users/:id */
 export const getUserById = (userId) =>
-  client.get(`/api/users/${userId}`)
+  client.get(`/Users/${userId}`);
 
-/** GET /api/users/search/:username */
+/** Search by username */
 export const searchUsers = (username) =>
-  client.get(`/api/users/search/${username}`)
+  client.get("/Users", {
+    params: {
+      username,
+    },
+  });
 
-/** POST /api/users  — body: { username, email, password, ... } */
+/** Create User */
 export const createUser = (userData) =>
-  client.post('/api/users', userData)
+  client.post("/Users", userData);
 
-/** PUT /api/users/update/:userId  — body: partial user fields */
+/** Update User */
 export const updateUser = (userId, userData) =>
-  client.put(`/api/users/update/${userId}`, userData)
+  client.put(`/Users/${userId}`, userData);
 
-/** DELETE /api/users/delete/:userId */
+/** Delete User */
 export const deleteUser = (userId) =>
-  client.delete(`/api/users/delete/${userId}`)
+  client.delete(`/Users/${userId}`);
 
-// ── User sub-resources (convenience — used by Profile page) ───────────────
+/* ===========================
+   User Posts
+=========================== */
 
-/** GET /api/users/:userId/posts */
 export const getUserPosts = (userId) =>
-  client.get(`/api/users/${userId}/posts`)
+  client.get("/Posts", {
+    params: {
+      userID: Number(userId),
+    },
+  });
 
-/** GET /api/users/:userId/posts/comments */
-export const getUserPostComments = (userId) =>
-  client.get(`/api/users/${userId}/posts/comments`)
+/* ===========================
+   Comments on User's Posts
+=========================== */
 
-/** GET /api/users/:userId/posts/likes  — likes received on user's posts */
-export const getUserPostLikes = (userId) =>
-  client.get(`/api/users/${userId}/posts/likes`)
+export const getUserPostComments = async (userId) => {
+  const posts = await client.get("/Posts", {
+    params: {
+      userID: Number(userId),
+    },
+  });
 
-/** GET /api/users/:userId/likes  — likes given by user */
+  if (!posts || !posts.length) return [];
+
+  const comments = await Promise.all(
+    posts.map((post) =>
+      client.get("/Comments", {
+        params: {
+          postID: post.postID,
+        },
+      })
+    )
+  );
+
+  return comments.flat();
+};
+
+/* ===========================
+   Likes received on User's Posts
+=========================== */
+
+export const getUserPostLikes = async (userId) => {
+  const posts = await client.get("/Posts", {
+    params: {
+      userID: Number(userId),
+    },
+  });
+
+  if (!posts || !posts.length) return [];
+
+  const likes = await Promise.all(
+    posts.map((post) =>
+      client.get("/Likes", {
+        params: {
+          postID: post.postID,
+        },
+      })
+    )
+  );
+
+  return likes.flat();
+};
+
+/* ===========================
+   Likes Given By User
+=========================== */
+
 export const getUserGivenLikes = (userId) =>
-  client.get(`/api/users/${userId}/likes`)
+  client.get("/Likes", {
+    params: {
+      userID: Number(userId),
+    },
+  });
 
-/** GET /api/users/:userId/notifications */
+/* ===========================
+   Notifications
+=========================== */
+
 export const getUserNotifications = (userId) =>
-  client.get(`/api/users/${userId}/notifications`)
+  client.get("/Notifications", {
+    params: {
+      userID: Number(userId),
+    },
+  });
 
-/** GET /api/users/:userId/groups */
+/* ===========================
+   Groups
+=========================== */
+
 export const getUserGroups = (userId) =>
-  client.get(`/api/users/${userId}/groups`)
+  client.get("/Groups", {
+    params: {
+      userID: Number(userId),
+    },
+  });
