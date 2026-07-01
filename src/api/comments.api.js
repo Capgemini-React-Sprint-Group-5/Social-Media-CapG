@@ -1,39 +1,59 @@
-import client from './client.js'
+import client from "./client";
 
-/**
- * api/comments.api.js  — Owner: B
- */
+/* ===========================
+   Comments
+=========================== */
 
-/** GET /api/comments */
+/** GET /Comments */
 export const getAllComments = () =>
-  client.get('/api/comments')
+  client.get("/Comments");
 
-/** GET /api/comments/:commentId */
+/** GET /Comments/:commentID */
 export const getCommentById = (commentId) =>
-  client.get(`/api/comments/${commentId}`)
+  client.get(`/Comments/${commentId}`);
 
-/** POST /api/comments  — body: { postId, userId, comment_text } */
-export const createComment = (commentData) =>
-  client.post('/api/comments', commentData)
-
-/** PUT /api/comments/:commentId  — body: { comment_text } */
-export const updateComment = (commentId, commentData) =>
-  client.put(`/api/comments/${commentId}`, commentData)
-
-/** DELETE /api/comments/:commentId */
-export const deleteComment = (commentId) =>
-  client.delete(`/api/comments/${commentId}`)
-
-// ── Post-scoped comment endpoints ─────────────────────────────────────────
-
-/** GET /api/posts/:postId/comments */
+/** GET comments of a post */
 export const getCommentsByPost = (postId) =>
-  client.get(`/api/posts/${postId}/comments`)
+  client.get("/Comments", {
+    params: {
+      postID: Number(postId),
+    },
+  });
 
-/** POST /api/posts/:postId/comments  — body: { userId, comment_text } */
-export const addCommentToPost = (postId, commentData) =>
-  client.post(`/api/posts/${postId}/comments`, commentData)
+/** GET comments made by a user */
+export const getCommentsByUser = (userId) =>
+  client.get("/Comments", {
+    params: {
+      userID: Number(userId),
+    },
+  });
 
-/** DELETE /api/posts/:postId/comments/:commentId */
-export const deleteCommentFromPost = (postId, commentId) =>
-  client.delete(`/api/posts/${postId}/comments/${commentId}`)
+/** Create Comment */
+export const createComment = (commentData) =>
+  client.post("/Comments", commentData);
+
+/** Update Comment */
+export const updateComment = (commentId, commentData) =>
+  client.put(`/Comments/${commentId}`, commentData);
+
+/** Delete Comment */
+export const deleteComment = (commentId) =>
+  client.delete(`/Comments/${commentId}`);
+
+/* ===========================
+   Relations
+=========================== */
+
+/** Fetch post for a comment */
+export const getCommentPost = async (commentId) => {
+  const comment = await client.get(`/Comments/${commentId}`);
+
+  return client.get(`/Posts/${comment.postID}`);
+};
+
+/** Fetch user who wrote the comment */
+export const getCommentUser = async (commentId) => {
+  const comment = await client.get(`/Comments/${commentId}`);
+
+  return client.get(`/Users/${comment.userID}`);
+};

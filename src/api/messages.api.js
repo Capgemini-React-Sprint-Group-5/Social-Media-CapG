@@ -6,42 +6,63 @@ import client from './client.js'
 
 // ── Generic message CRUD ───────────────────────────────────────────────────
 
-/** GET /api/messages */
+/** GET /Messages */
 export const getAllMessages = () =>
-  client.get('/api/messages')
+  client.get('/Messages')
 
-/** GET /api/messages/:messageId */
+/** GET /Messages/:messageId */
 export const getMessageById = (messageId) =>
-  client.get(`/api/messages/${messageId}`)
+  client.get(`/Messages/${messageId}`)
 
-/** POST /api/messages  — body: { senderID, receiverID, message_text } */
+/** POST /Messages  — body: { senderID, receiverID, message_text } */
 export const createMessage = (messageData) =>
-  client.post('/api/messages', messageData)
+  client.post('/Messages', messageData)
 
-/** PUT /api/messages/:messageId  — body: { message_text } */
+/** PUT /Messages/:messageId  — body: { message_text } */
 export const updateMessage = (messageId, messageData) =>
-  client.put(`/api/messages/${messageId}`, messageData)
+  client.put(`/Messages/${messageId}`, messageData)
 
-/** DELETE /api/messages/:messageId */
+/** DELETE /Messages/:messageId */
 export const deleteMessage = (messageId) =>
-  client.delete(`/api/messages/${messageId}`)
+  client.delete(`/Messages/${messageId}`)
 
 // ── User DM conversation ───────────────────────────────────────────────────
 
-/** GET /api/users/:userId/messages/:otherUserId */
-export const getConversation = (userId, otherUserId) =>
-  client.get(`/api/users/${userId}/messages/${otherUserId}`)
+/** GET DMs between two users */
+export const getConversation = async (userId, otherUserId) => {
+  const messages = await client.get('/Messages');
+  const uid = Number(userId);
+  const ouid = Number(otherUserId);
+  return messages.filter(m => 
+    (Number(m.senderID) === uid && Number(m.receiverID) === ouid) ||
+    (Number(m.senderID) === ouid && Number(m.receiverID) === uid)
+  );
+};
 
-/** POST /api/users/:userId/messages/send/:otherUserId  — body: { message_text } */
+/** POST DM between two users */
 export const sendMessage = (userId, otherUserId, messageData) =>
-  client.post(`/api/users/${userId}/messages/send/${otherUserId}`, messageData)
+  client.post('/Messages', {
+    messageID: Date.now(),
+    senderID: Number(userId),
+    receiverID: Number(otherUserId),
+    message_text: messageData.message_text,
+    timestamp: new Date().toISOString()
+  });
 
 // ── Friend conversation ────────────────────────────────────────────────────
 
-/** GET /api/friends/:friendshipId/messages */
-export const getFriendMessages = (friendshipId) =>
-  client.get(`/api/friends/${friendshipId}/messages`)
+/** GET messages for a friendship thread */
+export const getFriendMessages = async (friendshipId) => {
+  const messages = await client.get('/Messages');
+  return messages.filter(m => Number(m.friendshipID) === Number(friendshipId));
+};
 
-/** POST /api/friends/:friendshipId/messages/send  — body: { senderID, message_text } */
+/** POST message to friendship thread */
 export const sendFriendMessage = (friendshipId, messageData) =>
-  client.post(`/api/friends/${friendshipId}/messages/send`, messageData)
+  client.post('/Messages', {
+    messageID: Date.now(),
+    friendshipID: Number(friendshipId),
+    senderID: Number(messageData.senderID),
+    message_text: messageData.message_text,
+    timestamp: new Date().toISOString()
+  });
