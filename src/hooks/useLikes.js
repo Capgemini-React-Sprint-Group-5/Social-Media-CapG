@@ -68,7 +68,7 @@ export function useAddLike() {
 export function useRemoveLike() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ postId, likeId }) => likesApi.removeLike(postId, likeId),
+    mutationFn: ({ likeId }) => likesApi.removeLike(likeId),
     onSuccess: (_, { postId }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.likes.byPost(postId) })
     },

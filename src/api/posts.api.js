@@ -1,22 +1,61 @@
-import client from './client.js'
+import client from "./client";
 
-/**
- * api/posts.api.js  — Owner: B
- * Raw API calls for the /api/post resource.
- */
+/* ===========================
+   Posts
+=========================== */
 
-/** GET /api/post/:postId */
+/** GET /Posts */
+export const getAllPosts = () =>
+  client.get("/Posts");
+
+/** GET /Posts/:postID */
 export const getPostById = (postId) =>
-  client.get(`/api/post/${postId}`)
+  client.get(`/Posts/${postId}`);
 
-/** POST /api/post  — body: { userId, content } */
+/** GET /Posts?userID= */
+export const getPostsByUser = (userId) =>
+  client.get("/Posts", {
+    params: {
+      userID: Number(userId),
+    },
+  });
+
+/** Create Post */
 export const createPost = (postData) =>
-  client.post('/api/post', postData)
+  client.post("/Posts", postData);
 
-/** PUT /api/post/update/:postId  — body: { content } */
+/** Update Post */
 export const updatePost = (postId, postData) =>
-  client.put(`/api/post/update/${postId}`, postData)
+  client.put(`/Posts/${postId}`, postData);
 
-/** DELETE /api/post/delete/:postId */
+/** Delete Post */
 export const deletePost = (postId) =>
-  client.delete(`/api/post/delete/${postId}`)
+  client.delete(`/Posts/${postId}`);
+
+/* ===========================
+   Post Relations
+=========================== */
+
+/** Comments of a Post */
+export const getPostComments = (postId) =>
+  client.get("/Comments", {
+    params: {
+      postID: Number(postId),
+    },
+  });
+
+/** Likes of a Post */
+export const getPostLikes = (postId) =>
+  client.get("/Likes", {
+    params: {
+      postID: Number(postId),
+    },
+  });
+
+/** Search posts by content */
+export const searchPosts = (text) =>
+  client.get("/Posts", {
+    params: {
+      q: text,
+    },
+  });

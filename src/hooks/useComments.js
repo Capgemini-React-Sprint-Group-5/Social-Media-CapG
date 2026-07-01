@@ -27,7 +27,7 @@ export function usePostComments(postId) {
 export function useAddComment() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ postId, commentData }) => commentsApi.addCommentToPost(postId, commentData),
+    mutationFn: ({ commentData }) => commentsApi.createComment(commentData),
     onSuccess: (_, { postId }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.comments.byPost(postId) })
     },
@@ -59,7 +59,7 @@ export function useUpdateComment() {
 export function useDeleteComment() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ postId, commentId }) => commentsApi.deleteCommentFromPost(postId, commentId),
+    mutationFn: ({ commentId }) => commentsApi.deleteComment(commentId),
     onSuccess: (_, { postId }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.comments.byPost(postId) })
     },
