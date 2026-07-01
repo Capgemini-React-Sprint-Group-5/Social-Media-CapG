@@ -1,129 +1,50 @@
-import client from "./client";
+import client from "./client.js";
 
-/* ===========================
-   Users
-=========================== */
+// GET /Users/all
+export const getAllUsers = async () => (await client.get("/Users/all")).data;
 
-/** GET /Users */
-export const getAllUsers = () =>
-  client.get("/Users");
+// GET /Users/:userId
+export const getUserById = async (userId) =>
+  (await client.get(`/Users/${userId}`)).data;
 
-/** GET /Users/:id */
-export const getUserById = (userId) =>
-  client.get(`/Users/${userId}`);
+// GET /Users/search/:username
+export const searchUsers = async (username) =>
+  (await client.get(`/Users/search/${username}`)).data;
 
-/** Search by username */
-export const searchUsers = (username) =>
-  client.get("/Users", {
-    params: {
-      username,
-    },
-  });
+// POST /Users/login
+export const loginUser = async (credentials) =>
+  (await client.post("/Users/login", credentials)).data;
 
-/** Create User */
-export const createUser = (userData) =>
-  client.post("/Users", userData);
+// POST /Users
+export const createUser = (userData) => client.post("/Users", userData);
 
-/** Update User */
+// PUT /Users/update/:userId
 export const updateUser = (userId, userData) =>
-  client.put(`/Users/${userId}`, userData);
+  client.put(`/Users/update/${userId}`, userData);
 
-/** Delete User */
-export const deleteUser = (userId) =>
-  client.delete(`/Users/${userId}`);
+// DELETE /Users/delete/:userId
+export const deleteUser = (userId) => client.delete(`/Users/delete/${userId}`);
 
-/* ===========================
-   User Posts
-=========================== */
+// GET /Users/:userId/posts
+export const getUserPosts = async (userId) =>
+  (await client.get(`/Users/${userId}/posts`)).data;
 
-export const getUserPosts = (userId) =>
-  client.get("/Posts", {
-    params: {
-      userID: Number(userId),
-    },
-  });
+// GET /Users/:userId/posts/comments
+export const getUserPostComments = async (userId) =>
+  (await client.get(`/Users/${userId}/posts/comments`)).data;
 
-/* ===========================
-   Comments on User's Posts
-=========================== */
+// GET /Users/:userId/posts/likes
+export const getUserPostLikes = async (userId) =>
+  (await client.get(`/Users/${userId}/posts/likes`)).data;
 
-export const getUserPostComments = async (userId) => {
-  const posts = await client.get("/Posts", {
-    params: {
-      userID: Number(userId),
-    },
-  });
+// GET /Users/:userId/likes
+export const getUserGivenLikes = async (userId) =>
+  (await client.get(`/Users/${userId}/likes`)).data;
 
-  if (!posts || !posts.length) return [];
+// GET /Users/:userId/notifications
+export const getUserNotifications = async (userId) =>
+  (await client.get(`/Users/${userId}/notifications`)).data;
 
-  const comments = await Promise.all(
-    posts.map((post) =>
-      client.get("/Comments", {
-        params: {
-          postID: post.postID,
-        },
-      })
-    )
-  );
-
-  return comments.flat();
-};
-
-/* ===========================
-   Likes received on User's Posts
-=========================== */
-
-export const getUserPostLikes = async (userId) => {
-  const posts = await client.get("/Posts", {
-    params: {
-      userID: Number(userId),
-    },
-  });
-
-  if (!posts || !posts.length) return [];
-
-  const likes = await Promise.all(
-    posts.map((post) =>
-      client.get("/Likes", {
-        params: {
-          postID: post.postID,
-        },
-      })
-    )
-  );
-
-  return likes.flat();
-};
-
-/* ===========================
-   Likes Given By User
-=========================== */
-
-export const getUserGivenLikes = (userId) =>
-  client.get("/Likes", {
-    params: {
-      userID: Number(userId),
-    },
-  });
-
-/* ===========================
-   Notifications
-=========================== */
-
-export const getUserNotifications = (userId) =>
-  client.get("/Notifications", {
-    params: {
-      userID: Number(userId),
-    },
-  });
-
-/* ===========================
-   Groups
-=========================== */
-
-export const getUserGroups = (userId) =>
-  client.get("/Groups", {
-    params: {
-      userID: Number(userId),
-    },
-  });
+// GET /Users/:userId/groups
+export const getUserGroups = async (userId) =>
+  (await client.get(`/Users/${userId}/groups`)).data;

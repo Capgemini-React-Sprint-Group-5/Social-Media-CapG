@@ -4,7 +4,7 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useEffect, useState } from "react";
 import { setUser } from "../store/slices/authSlice.js";
-import { useUserSearch } from "../hooks/useUsers.js";
+import { useLoginUser } from "../hooks/useUsers.js";
 
 /**
  * LoginPage — Owner: A
@@ -18,14 +18,8 @@ import { useUserSearch } from "../hooks/useUsers.js";
 export default function LoginPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [searchUsername, setSearchUsername] = useState("");
   const [loginError, setLoginError] = useState("");
-
-  const {
-    data: searchResult,
-    isFetching,
-    isError,
-  } = useUserSearch(searchUsername);
+  const { mutate: login, isPending } = useLoginUser();
 
   const formik = useFormik({
     initialValues: { username: "", password: "" },
@@ -35,40 +29,22 @@ export default function LoginPage() {
     }),
     onSubmit: (values) => {
       setLoginError("");
-      // Trigger the search query by setting the username
-      setSearchUsername(values.username.trim());
+      login(values, {
+        onSuccess: (user) => {
+          const userId = user?.userID || user?.userId || user?.id;
+          dispatch(
+            setUser({ userId, username: user.username, email: user.email }),
+          );
+          navigate("/");
+        },
+        onError: (err) => {
+          setLoginError(err?.message || "Invalid username or password.");
+        },
+      });
     },
   });
 
-  // React to search results once the query settles (avoids dispatching mid-render)
-  useEffect(() => {
-    if (!searchUsername || isFetching) return;
-
-    if (isError) {
-      setLoginError("No account found with that username.");
-      setSearchUsername("");
-      return;
-    }
-
-    const user = Array.isArray(searchResult) ? searchResult[0] : searchResult;
-    const userId = user?.userID || user?.userId || user?.id;
-
-    if (userId) {
-      dispatch(
-        setUser({
-          userId: userId,
-          username: user.username,
-          email: user.email,
-        }),
-      );
-      navigate("/");
-    } else if (searchResult !== undefined) {
-      setLoginError("No account found with that username.");
-      setSearchUsername(""); // reset so the same username can be retried
-    }
-  }, [searchResult, isFetching, isError, searchUsername, dispatch, navigate]);
-
-    return (
+  return (
     <div
       className="container-fluid"
       style={{
@@ -77,7 +53,6 @@ export default function LoginPage() {
       }}
     >
       <div className="row min-vh-100">
-
         <div
           className="col-lg-6 d-none d-lg-flex flex-column justify-content-center px-5"
           style={{
@@ -118,9 +93,7 @@ export default function LoginPage() {
             Secure • Fast • Reliable
           </div>
         </div>
-        <div
-          className="col-lg-6 d-flex justify-content-center align-items-center"
-        >
+        <div className="col-lg-6 d-flex justify-content-center align-items-center">
           <div
             className="card shadow-lg border-0"
             style={{
@@ -139,24 +112,15 @@ export default function LoginPage() {
               Welcome Back
             </h2>
 
-            <p
-              className="text-center text-muted mb-4"
-            >
-              Login to continue
-            </p>
+            <p className="text-center text-muted mb-4">Login to continue</p>
 
             {loginError && (
-              <div className="alert alert-danger py-2">
-                {loginError}
-              </div>
+              <div className="alert alert-danger py-2">{loginError}</div>
             )}
 
             <form onSubmit={formik.handleSubmit}>
-
               <div className="mb-3">
-                <label className="form-label fw-semibold">
-                  Username
-                </label>
+                <label className="form-label fw-semibold">Username</label>
 
                 <input
                   id="username"
@@ -164,8 +128,7 @@ export default function LoginPage() {
                   type="text"
                   placeholder="Enter username"
                   className={`form-control ${
-                    formik.touched.username &&
-                    formik.errors.username
+                    formik.touched.username && formik.errors.username
                       ? "is-invalid"
                       : ""
                   }`}
@@ -178,18 +141,15 @@ export default function LoginPage() {
                   onBlur={formik.handleBlur}
                 />
 
-                {formik.touched.username &&
-                  formik.errors.username && (
-                    <div className="invalid-feedback">
-                      {formik.errors.username}
-                    </div>
-                  )}
+                {formik.touched.username && formik.errors.username && (
+                  <div className="invalid-feedback">
+                    {formik.errors.username}
+                  </div>
+                )}
               </div>
 
               <div className="mb-4">
-                <label className="form-label fw-semibold">
-                  Password
-                </label>
+                <label className="form-label fw-semibold">Password</label>
 
                 <input
                   id="password"
@@ -197,8 +157,7 @@ export default function LoginPage() {
                   type="password"
                   placeholder="Enter password"
                   className={`form-control ${
-                    formik.touched.password &&
-                    formik.errors.password
+                    formik.touched.password && formik.errors.password
                       ? "is-invalid"
                       : ""
                   }`}
@@ -211,49 +170,37 @@ export default function LoginPage() {
                   onBlur={formik.handleBlur}
                 />
 
-                {formik.touched.password &&
-                  formik.errors.password && (
-                    <div className="invalid-feedback">
-                      {formik.errors.password}
-                    </div>
-                  )}
+                {formik.touched.password && formik.errors.password && (
+                  <div className="invalid-feedback">
+                    {formik.errors.password}
+                  </div>
+                )}
               </div>
 
               <button
                 type="submit"
                 className="btn btn-primary w-100"
-                disabled={isFetching}
+                disabled={isPending}
                 style={{
                   height: "50px",
                   borderRadius: "12px",
                   fontWeight: "600",
                 }}
               >
-                {isFetching ? (
+                {isPending ? (
                   <>
-                    <span
-                      className="spinner-border spinner-border-sm me-2"
-                    ></span>
+                    <span className="spinner-border spinner-border-sm me-2"></span>
                     Logging in...
                   </>
                 ) : (
                   "Login"
                 )}
               </button>
-
             </form>
 
             <div className="text-center mt-4">
-              <span className="text-muted">
-                Don't have an account?
-              </span>
-
-              {" "}
-
-              <Link
-                to="/register"
-                className="text-decoration-none fw-semibold"
-              >
+              <span className="text-muted">Don't have an account?</span>{" "}
+              <Link to="/register" className="text-decoration-none fw-semibold">
                 Register
               </Link>
             </div>
