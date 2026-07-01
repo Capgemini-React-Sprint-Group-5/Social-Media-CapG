@@ -15,7 +15,7 @@ const queryClient = new QueryClient({
     queries: {
       // Don't retry on 404s — the resource genuinely doesn't exist
       retry: (failureCount, error) => {
-        if (error?.status === 404) return false
+        if (error?.response?.status === 404) return false;
         return failureCount < 2
       },
       staleTime: 1000 * 60, // 1 minute default

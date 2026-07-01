@@ -110,8 +110,12 @@ export function useUpdateMessage() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: ({ messageId, messageData }) => messagesApi.updateMessage(messageId, messageData),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.messages.all() })
+    onSuccess: (_, { userId, otherUserId }) => {
+      if (userId && otherUserId) {
+        queryClient.invalidateQueries({ 
+          queryKey: queryKeys.messages.conversation(userId, otherUserId) 
+        });
+      }
     },
   })
 }
@@ -125,9 +129,13 @@ export function useUpdateMessage() {
 export function useDeleteMessage() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: messagesApi.deleteMessage,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.messages.all() })
+    mutationFn: ({ messageId }) => messagesApi.deleteMessage(messageId),
+    onSuccess: (_, { userId, otherUserId }) => {
+      if (userId && otherUserId) {
+        queryClient.invalidateQueries({ 
+          queryKey: queryKeys.messages.conversation(userId, otherUserId) 
+        });
+      }
     },
   })
 }

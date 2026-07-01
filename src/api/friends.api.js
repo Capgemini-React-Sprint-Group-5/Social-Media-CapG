@@ -1,9 +1,5 @@
 import client from "./client.js";
 
-/**
- * api/friends.api.js  — Owner: C
- */
-
 /* GET /api/users/:userId/friends */
 export const getFriends = async (userId) => {
   const [friendsData, usersData] = await Promise.all([
@@ -64,6 +60,8 @@ export const removeFriend = async (userId, friendId) => {
   );
   if (existing) {
     return client.delete(`/Friends/${existing.friendshipID}`);
+  } else {
+    throw new Error('Friendship not found');
   }
 };
 
