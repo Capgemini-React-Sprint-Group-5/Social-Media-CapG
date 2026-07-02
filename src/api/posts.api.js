@@ -1,22 +1,45 @@
-import client from './client.js'
+import client from "./client.js";
+import { getAllUsers } from "./users.api.js";
 
-/**
- * api/posts.api.js  — Owner: B
- * Raw API calls for the /api/post resource.
- */
+// GET /Post/:postId
+export const getPostById = async (postId) =>
+  (await client.get(`/Post/${postId}`)).data;
 
-/** GET /api/post/:postId */
-export const getPostById = (postId) =>
-  client.get(`/api/post/${postId}`)
+// POST /Post
+export const createPost = (postData) => client.post("/Post", postData);
 
-/** POST /api/post  — body: { userId, content } */
-export const createPost = (postData) =>
-  client.post('/api/post', postData)
-
-/** PUT /api/post/update/:postId  — body: { content } */
+// PUT /Post/update/:postId
 export const updatePost = (postId, postData) =>
-  client.put(`/api/post/update/${postId}`, postData)
+  client.put(`/Post/update/${postId}`, postData);
 
-/** DELETE /api/post/delete/:postId */
-export const deletePost = (postId) =>
-  client.delete(`/api/post/delete/${postId}`)
+// DELETE /Post/delete/:postId
+export const deletePost = (postId) => client.delete(`/Post/delete/${postId}`);
+
+// GET /Users/:userId/posts (per user)
+export const getPostsByUser = async (userId) =>
+  (await client.get(`/Users/${userId}/posts`)).data;
+
+// no all-posts endpoint — composed across every user's posts
+// export const getAllPosts = async () => {
+//   const users = await getAllUsers();
+//   const posts = await Promise.all(users.map((u) => getPostsByUser(u.userID)));
+//   return posts.flat();
+// };
+
+export const getAllPosts = async (postId) => (await client.get(`/Posts`)).data;
+
+// no search endpoint — filtered client-side over getAllPosts
+export const searchPosts = async (text) => {
+  const posts = await getAllPosts();
+  return posts.filter((p) =>
+    p.content?.toLowerCase().includes(text.toLowerCase()),
+  );
+};
+
+// GET /Posts/:postId/comments
+export const getPostComments = async (postId) =>
+  (await client.get(`/Posts/${postId}/comments`)).data;
+
+// GET /Posts/:postId/likes
+export const getPostLikes = async (postId) =>
+  (await client.get(`/Posts/${postId}/likes`)).data;

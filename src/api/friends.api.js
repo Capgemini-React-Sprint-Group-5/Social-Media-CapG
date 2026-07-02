@@ -1,25 +1,62 @@
 import client from "./client.js";
+import { getAllUsers } from "./users.api.js";
 
-/**
- * api/friends.api.js  — Owner: C
- */
+// GET /Users/:userId/friends (accepted only, enriched with user info)
+export const getFriends = async (userId) => {
+  const [friends, users] = await Promise.all([
+    (await client.get(`/Users/${userId}/friends`)).data,
+    getAllUsers(),
+  ]);
+  return friends
+    .filter((f) => f.status === "accepted")
+    .map((f) => {
+      const u = users.find((u) => String(u.userID) === String(f.friendId));
+      return {
+        friendshipId: f.friendshipID,
+        friendId: f.friendId,
+        username: u?.username,
+        email: u?.email,
+        profile_picture: u?.profile_picture,
+      };
+    });
+};
 
-/* GET /api/users/:userId/friends */
-export const getFriends = (userId) =>
-  client.get(`/api/users/${userId}/friends`);
+// GET /Users/:userId/friend-requests/pending (requests received)
+export const getPendingRequests = async (userId) => {
+  const [pending, users] = await Promise.all([
+    (await client.get(`/Users/${userId}/friend-requests/pending`)).data,
+    getAllUsers(),
+  ]);
+  return pending
+    .filter((f) => String(f.userID2) === String(userId))
+    .map((f) => {
+      const u = users.find((u) => String(u.userID) === String(f.userID1));
+      return {
+        friendshipId: f.friendshipID,
+        friendId: f.userID1,
+        username: u?.username,
+        email: u?.email,
+        profile_picture: u?.profile_picture,
+      };
+    });
+};
 
-/* POST /api/users/:userId/friends/:friendId */
-export const addFriend = (userId, friendId) =>
-  client.post(`/api/users/${userId}/friends/${friendId}`);
-
-/* DELETE /api/users/:userId/friends/:friendId */
-export const removeFriend = (userId, friendId) =>
-  client.delete(`/api/users/${userId}/friends/${friendId}`);
-
-/* POST /api/users/:userId/friend-requests/send/:friendId */
+// POST /Users/:userId/friend-requests/send/:friendId
 export const sendFriendRequest = (userId, friendId) =>
-  client.post(`/api/users/${userId}/friend-requests/send/${friendId}`);
+  client.post(`/Users/${userId}/friend-requests/send/${friendId}`);
 
-/* GET /api/users/:userId/friend-requests/pending */
-export const getPendingRequests = (userId) =>
-  client.get(`/api/users/${userId}/friend-requests/pending`);
+// POST /Users/:userId/friends/:friendId (accepts a pending request, or adds directly)
+export const addFriend = (userId, friendId) =>
+  client.post(`/Users/${userId}/friends/${friendId}`);
+
+// DELETE /Users/:userId/friends/:friendId
+export const removeFriend = (userId, friendId) =>
+  client.delete(`/Users/${userId}/friends/${friendId}`);
+
+// GET /Friends/:friendshipId/messages
+export const getFriendMessages = async (friendshipId) =>
+  (await client.get(`/Friends/${friendshipId}/messages`)).data;
+
+// POST /Friends/:friendshipId/messages/send  — body: { senderID, message_text }
+export const sendFriendMessage = (friendshipId, messageData) =>
+  client.post(`/Friends/${friendshipId}/messages/send`, messageData);

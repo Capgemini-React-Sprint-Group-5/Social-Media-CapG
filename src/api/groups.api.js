@@ -1,69 +1,54 @@
-import client from './client.js'
+import client from "./client.js";
 
-/**
- * api/groups.api.js  — Owner: E
- */
+// GET /Groups
+export const getAllGroups = async () => (await client.get("/Groups")).data;
 
-// ── Group CRUD ─────────────────────────────────────────────────────────────
+// GET /Groups/:groupId
+export const getGroupById = async (groupId) =>
+  (await client.get(`/Groups/${groupId}`)).data;
 
-/** GET /api/groups */
-export const getAllGroups = () =>
-  client.get('/api/groups')
+// POST /Groups  — body: { groupName, adminID }
+export const createGroup = (groupData) => client.post("/Groups", groupData);
 
-/** GET /api/groups/:groupId */
-export const getGroupById = (groupId) =>
-  client.get(`/api/groups/${groupId}`)
-
-/** POST /api/groups  — body: { groupName, adminID } */
-export const createGroup = (groupData) =>
-  client.post('/api/groups', groupData)
-
-/** PUT /api/groups/:groupId  — body: { groupName } */
+// PUT /Groups/:groupId
 export const updateGroup = (groupId, groupData) =>
-  client.put(`/api/groups/${groupId}`, groupData)
+  client.put(`/Groups/${groupId}`, groupData);
 
-/** DELETE /api/groups/:groupId */
-export const deleteGroup = (groupId) =>
-  client.delete(`/api/groups/${groupId}`)
+// DELETE /Groups/:groupId
+export const deleteGroup = (groupId) => client.delete(`/Groups/${groupId}`);
 
-// ── Membership ─────────────────────────────────────────────────────────────
+// GET /Groups/:groupId/members
+export const getGroupMembers = async (groupId) =>
+  (await client.get(`/Groups/${groupId}/members`)).data;
 
-/** POST /api/groups/:groupId/join/:userId */
+// POST /Groups/:groupId/join/:userId
 export const joinGroup = (groupId, userId) =>
-  client.post(`/api/groups/${groupId}/join/${userId}`)
+  client.post(`/Groups/${groupId}/join/${userId}`);
 
-/** DELETE /api/groups/:groupId/leave/:userId */
+// DELETE /Groups/:groupId/leave/:userId
 export const leaveGroup = (groupId, userId) =>
-  client.delete(`/api/groups/${groupId}/leave/${userId}`)
+  client.delete(`/Groups/${groupId}/leave/${userId}`);
 
-/** GET /api/groups/:groupId/members */
-export const getGroupMembers = (groupId) =>
-  client.get(`/api/groups/${groupId}/members`)
-
-/** POST /api/groups/:groupId/members/add/:userId */
+// POST /Groups/:groupId/members/add/:userId
 export const addGroupMember = (groupId, userId) =>
-  client.post(`/api/groups/${groupId}/members/add/${userId}`)
+  client.post(`/Groups/${groupId}/members/add/${userId}`);
 
-/** DELETE /api/groups/:groupId/members/remove/:userId */
+// DELETE /Groups/:groupId/members/remove/:userId
 export const removeGroupMember = (groupId, userId) =>
-  client.delete(`/api/groups/${groupId}/members/remove/${userId}`)
+  client.delete(`/Groups/${groupId}/members/remove/${userId}`);
 
-// ── Group messaging ────────────────────────────────────────────────────────
+// GET /Groups/:groupId/messages
+export const getGroupMessages = async (groupId) =>
+  (await client.get(`/Groups/${groupId}/messages`)).data;
 
-/** GET /api/groups/:groupId/messages */
-export const getGroupMessages = (groupId) =>
-  client.get(`/api/groups/${groupId}/messages`)
-
-/** POST /api/groups/:groupId/messages/send/:userId  — body: { message_text } */
+// POST /Groups/:groupId/messages/send/:userId  — body: { message_text }
 export const sendGroupMessage = (groupId, userId, messageData) =>
-  client.post(`/api/groups/${groupId}/messages/send/${userId}`, messageData)
+  client.post(`/Groups/${groupId}/messages/send/${userId}`, messageData);
 
-// ── Group-friend relations ─────────────────────────────────────────────────
+// GET /Users/:userId/friends/groups
+export const getFriendsGroups = async (userId) =>
+  (await client.get(`/Users/${userId}/friends/groups`)).data;
 
-/** GET /api/users/:userId/friends/groups */
-export const getFriendsGroups = (userId) =>
-  client.get(`/api/users/${userId}/friends/groups`)
-
-/** GET /api/groups/:groupId/friends */
-export const getFriendsInGroup = (groupId) =>
-  client.get(`/api/groups/${groupId}/friends`)
+// GET /Groups/:groupId/friends?userId=  (falls back to all members if userId omitted)
+export const getFriendsInGroup = async (groupId, userId) =>
+  (await client.get(`/Groups/${groupId}/friends`, { params: { userId } })).data;

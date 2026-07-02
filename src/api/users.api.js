@@ -1,58 +1,50 @@
-import client from './client.js'
+import client from "./client.js";
 
-/**
- * api/users.api.js  — Owner: A
- * Raw API calls for the /api/users resource.
- * These are plain async functions — no React, no hooks.
- * TanStack Query hooks wrap these in src/hooks/useUsers.js
- */
+// GET /Users/all
+export const getAllUsers = async () => (await client.get("/Users/all")).data;
 
-/** GET /api/users/all */
-export const getAllUsers = () =>
-  client.get('/api/users/all')
+// GET /Users/:userId
+export const getUserById = async (userId) =>
+  (await client.get(`/Users/${userId}`)).data;
 
-/** GET /api/users/:userId */
-export const getUserById = (userId) =>
-  client.get(`/api/users/${userId}`)
+// GET /Users/search/:username
+export const searchUsers = async (username) =>
+  (await client.get(`/Users/search/${username}`)).data;
 
-/** GET /api/users/search/:username */
-export const searchUsers = (username) =>
-  client.get(`/api/users/search/${username}`)
+// POST /Users/login
+export const loginUser = async (credentials) =>
+  (await client.post("/Users/login", credentials)).data;
 
-/** POST /api/users  — body: { username, email, password, ... } */
-export const createUser = (userData) =>
-  client.post('/api/users', userData)
+// POST /Users
+export const createUser = (userData) => client.post("/Users", userData);
 
-/** PUT /api/users/update/:userId  — body: partial user fields */
+// PUT /Users/update/:userId
 export const updateUser = (userId, userData) =>
-  client.put(`/api/users/update/${userId}`, userData)
+  client.put(`/Users/update/${userId}`, userData);
 
-/** DELETE /api/users/delete/:userId */
-export const deleteUser = (userId) =>
-  client.delete(`/api/users/delete/${userId}`)
+// DELETE /Users/delete/:userId
+export const deleteUser = (userId) => client.delete(`/Users/delete/${userId}`);
 
-// ── User sub-resources (convenience — used by Profile page) ───────────────
+// GET /Users/:userId/posts
+export const getUserPosts = async (userId) =>
+  (await client.get(`/Users/${userId}/posts`)).data;
 
-/** GET /api/users/:userId/posts */
-export const getUserPosts = (userId) =>
-  client.get(`/api/users/${userId}/posts`)
+// GET /Users/:userId/posts/comments
+export const getUserPostComments = async (userId) =>
+  (await client.get(`/Users/${userId}/posts/comments`)).data;
 
-/** GET /api/users/:userId/posts/comments */
-export const getUserPostComments = (userId) =>
-  client.get(`/api/users/${userId}/posts/comments`)
+// GET /Users/:userId/posts/likes
+export const getUserPostLikes = async (userId) =>
+  (await client.get(`/Users/${userId}/posts/likes`)).data;
 
-/** GET /api/users/:userId/posts/likes  — likes received on user's posts */
-export const getUserPostLikes = (userId) =>
-  client.get(`/api/users/${userId}/posts/likes`)
+// GET /Users/:userId/likes
+export const getUserGivenLikes = async (userId) =>
+  (await client.get(`/Users/${userId}/likes`)).data;
 
-/** GET /api/users/:userId/likes  — likes given by user */
-export const getUserGivenLikes = (userId) =>
-  client.get(`/api/users/${userId}/likes`)
+// GET /Users/:userId/notifications
+export const getUserNotifications = async (userId) =>
+  (await client.get(`/Users/${userId}/notifications`)).data;
 
-/** GET /api/users/:userId/notifications */
-export const getUserNotifications = (userId) =>
-  client.get(`/api/users/${userId}/notifications`)
-
-/** GET /api/users/:userId/groups */
-export const getUserGroups = (userId) =>
-  client.get(`/api/users/${userId}/groups`)
+// GET /Users/:userId/groups
+export const getUserGroups = async (userId) =>
+  (await client.get(`/Users/${userId}/groups`)).data;

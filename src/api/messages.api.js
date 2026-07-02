@@ -1,47 +1,28 @@
-import client from './client.js'
+import client from "./client.js";
 
-/**
- * api/messages.api.js  — Owner: D
- */
+// GET /Messages
+export const getAllMessages = async () => (await client.get("/Messages")).data;
 
-// ── Generic message CRUD ───────────────────────────────────────────────────
+// GET /Messages/:messageId
+export const getMessageById = async (messageId) =>
+  (await client.get(`/Messages/${messageId}`)).data;
 
-/** GET /api/messages */
-export const getAllMessages = () =>
-  client.get('/api/messages')
-
-/** GET /api/messages/:messageId */
-export const getMessageById = (messageId) =>
-  client.get(`/api/messages/${messageId}`)
-
-/** POST /api/messages  — body: { senderID, receiverID, message_text } */
+// POST /Messages
 export const createMessage = (messageData) =>
-  client.post('/api/messages', messageData)
+  client.post("/Messages", messageData);
 
-/** PUT /api/messages/:messageId  — body: { message_text } */
+// PUT /Messages/:messageId
 export const updateMessage = (messageId, messageData) =>
-  client.put(`/api/messages/${messageId}`, messageData)
+  client.put(`/Messages/${messageId}`, messageData);
 
-/** DELETE /api/messages/:messageId */
+// DELETE /Messages/:messageId
 export const deleteMessage = (messageId) =>
-  client.delete(`/api/messages/${messageId}`)
+  client.delete(`/Messages/${messageId}`);
 
-// ── User DM conversation ───────────────────────────────────────────────────
+// GET /Users/:userId/messages/:otherUserId
+export const getConversation = async (userId, otherUserId) =>
+  (await client.get(`/Users/${userId}/messages/${otherUserId}`)).data;
 
-/** GET /api/users/:userId/messages/:otherUserId */
-export const getConversation = (userId, otherUserId) =>
-  client.get(`/api/users/${userId}/messages/${otherUserId}`)
-
-/** POST /api/users/:userId/messages/send/:otherUserId  — body: { message_text } */
+// POST /Users/:userId/messages/send/:otherUserId  — body: { message_text }
 export const sendMessage = (userId, otherUserId, messageData) =>
-  client.post(`/api/users/${userId}/messages/send/${otherUserId}`, messageData)
-
-// ── Friend conversation ────────────────────────────────────────────────────
-
-/** GET /api/friends/:friendshipId/messages */
-export const getFriendMessages = (friendshipId) =>
-  client.get(`/api/friends/${friendshipId}/messages`)
-
-/** POST /api/friends/:friendshipId/messages/send  — body: { senderID, message_text } */
-export const sendFriendMessage = (friendshipId, messageData) =>
-  client.post(`/api/friends/${friendshipId}/messages/send`, messageData)
+  client.post(`/Users/${userId}/messages/send/${otherUserId}`, messageData);
