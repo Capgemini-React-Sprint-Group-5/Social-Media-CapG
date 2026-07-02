@@ -14,6 +14,8 @@ import { useAllUsers } from '../hooks/useUsers.js'
 import Loader from '../components/common/Loader.jsx'
 import Avatar from '../components/common/Avatar.jsx'
 import Modal from '../components/common/Modal.jsx'
+import GroupMemberList from '../components/common/GroupMemberList.jsx'
+import MessageBubble from '../components/common/MessageBubble.jsx'
 
 /**
  * GroupChatPage
@@ -115,7 +117,6 @@ export default function GroupChatPage() {
           <i className="bi bi-arrow-left"></i>
           <span>Back to Groups</span>
         </button>
-        <span className="badge bg-secondary font-monospace">Group Chat Room</span>
       </div>
 
       <div className="row g-3">
@@ -144,26 +145,15 @@ export default function GroupChatPage() {
                   <p className="small text-muted">Be the first to say hello!</p>
                 </div>
               ) : (
-                messages.map((m) => {
-                  const isOwn = Number(m.senderID) === Number(userId)
-                  const sender = userMap.get(Number(m.senderID))
-                  const senderName = sender?.username || `User ${m.senderID}`
-
-                  return (
-                    <div key={m.messageID || m.id} className={`chat-bubble-container ${isOwn ? 'own' : 'other'}`}>
-                      {!isOwn && (
-                        <div className="me-2 align-self-end mb-1">
-                          <Avatar username={senderName} src={sender?.profile_picture} size={32} />
-                        </div>
-                      )}
-                      <div className="chat-bubble">
-                        {!isOwn && <span className="chat-bubble-sender">{senderName}</span>}
-                        <div>{m.message_text}</div>
-                        <span className="chat-bubble-meta">{formatTime(m.timestamp)}</span>
-                      </div>
-                    </div>
-                  )
-                })
+                messages.map((m) => (
+                  <MessageBubble
+                    key={m.messageID || m.id}
+                    message={m}
+                    currentUserId={userId}
+                    sender={userMap.get(Number(m.senderID))}
+                    formatTime={formatTime}
+                  />
+                ))
               )}
               <div ref={messagesEndRef} />
             </div>
@@ -224,44 +214,17 @@ export default function GroupChatPage() {
             </div>
 
             {/* Member List */}
-            <div
-              className="scrollable-panel"
-              style={{ maxHeight: '42vh', overflowY: 'auto' }}
-            >
-              {loadingMembers ? (
-                <Loader size="sm" />
-              ) : (
-                members?.map((m) => {
-                  const isMemberAdmin = Number(m.userID) === Number(group.adminID)
-
-                  return (
-                    <div
-                      key={m.userID}
-                      className="d-flex align-items-center justify-content-between p-2 member-item mb-1"
-                    >
-                      <div className="d-flex align-items-center gap-2 text-truncate" style={{ maxWidth: '80%' }}>
-                        <Avatar username={m.username} src={m.profile_picture} size={32} />
-                        <span className="text-dark fw-semibold text-truncate small" title={m.username}>
-                          {m.username}
-                        </span>
-                        {isMemberAdmin && <span className="admin-badge ms-1">Admin</span>}
-                      </div>
-
-                      {isOwner && !isMemberAdmin && (
-                        <button
-                          className="btn btn-outline-danger border-0 btn-sm py-0 px-2"
-                          onClick={() => setMemberToRemove(m)}
-                          disabled={removingMember}
-                          title="Remove Member"
-                        >
-                          <i className="bi bi-person-dash fs-5"></i>
-                        </button>
-                      )}
-                    </div>
-                  )
-                })
-              )}
-            </div>
+            {loadingMembers ? (
+              <Loader size="sm" />
+            ) : (
+              <GroupMemberList
+                members={members}
+                adminId={group.adminID}
+                currentUserId={userId}
+                onRemoveMember={(m) => setMemberToRemove(m)}
+                isRemoving={removingMember}
+              />
+            )}
           </div>
         </div>
       </div>
