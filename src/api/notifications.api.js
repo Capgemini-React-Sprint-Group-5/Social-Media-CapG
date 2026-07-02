@@ -1,26 +1,13 @@
-import client from './client.js'
+import client from "./client.js";
 
-/**
- * api/notifications.api.js  — Owner: E
- */
+// GET /Users/:userId/notifications
+export const getNotifications = async (userId) =>
+  (await client.get(`/Users/${userId}/notifications`)).data;
 
-/** GET /Notifications */
-export const getNotifications = (userId) =>
-  client.get('/Notifications', {
-    params: {
-      userID: Number(userId),
-    },
-  });
+// PUT /Users/:userId/notifications/mark-read/:notificationId
+export const markNotificationRead = (userId, notificationId) =>
+  client.put(`/Users/${userId}/notifications/mark-read/${notificationId}`);
 
-/** PUT /Notifications/:notificationId */
-export const markNotificationRead = async (userId, notificationId) => {
-  const notif = await client.get(`/Notifications/${notificationId}`);
-  return client.put(`/Notifications/${notificationId}`, {
-    ...notif,
-    read: true
-  });
-};
-
-/** DELETE /Notifications/:notificationId */
+// DELETE /Users/:userId/notifications/delete/:notificationId
 export const deleteNotification = (userId, notificationId) =>
-  client.delete(`/Notifications/${notificationId}`);
+  client.delete(`/Users/${userId}/notifications/delete/${notificationId}`);

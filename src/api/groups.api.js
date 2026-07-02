@@ -1,114 +1,54 @@
-import client from './client.js'
+import client from "./client.js";
 
-/**
- * api/groups.api.js  — Owner: E
- */
+// GET /Groups
+export const getAllGroups = async () => (await client.get("/Groups")).data;
 
-// ── Group CRUD ─────────────────────────────────────────────────────────────
+// GET /Groups/:groupId
+export const getGroupById = async (groupId) =>
+  (await client.get(`/Groups/${groupId}`)).data;
 
-// ── Group CRUD ─────────────────────────────────────────────────────────────
+// POST /Groups  — body: { groupName, adminID }
+export const createGroup = (groupData) => client.post("/Groups", groupData);
 
-/** GET /Groups */
-export const getAllGroups = () =>
-  client.get('/Groups')
-
-/** GET /Groups/:groupId */
-export const getGroupById = (groupId) =>
-  client.get(`/Groups/${groupId}`)
-
-/** POST /Groups  — body: { groupName, adminID } */
-export const createGroup = (groupData) => {
-  const numericId = Date.now()
-  return client.post('/Groups', {
-    ...groupData,
-    groupID: numericId,
-    id: String(numericId),
-    members: [Number(groupData.adminID)]
-  })
-}
-
-/** PUT /Groups/:groupId  — body: { groupName } */
+// PUT /Groups/:groupId
 export const updateGroup = (groupId, groupData) =>
-  client.put(`/Groups/${groupId}`, groupData)
+  client.put(`/Groups/${groupId}`, groupData);
 
-/** DELETE /Groups/:groupId */
-export const deleteGroup = (groupId) =>
-  client.delete(`/Groups/${groupId}`)
+// DELETE /Groups/:groupId
+export const deleteGroup = (groupId) => client.delete(`/Groups/${groupId}`);
 
-// ── Membership ─────────────────────────────────────────────────────────────
+// GET /Groups/:groupId/members
+export const getGroupMembers = async (groupId) =>
+  (await client.get(`/Groups/${groupId}/members`)).data;
 
-/** Join a group */
-export const joinGroup = async (groupId, userId) => {
-  const group = await client.get(`/Groups/${groupId}`);
-  const members = group.members || [Number(group.adminID)];
-  const userIdNum = Number(userId);
-  if (!members.includes(userIdNum)) {
-    members.push(userIdNum);
-  }
-  return client.put(`/Groups/${groupId}`, {
-    ...group,
-    members
-  });
-};
+// POST /Groups/:groupId/join/:userId
+export const joinGroup = (groupId, userId) =>
+  client.post(`/Groups/${groupId}/join/${userId}`);
 
-/** Leave a group */
-export const leaveGroup = async (groupId, userId) => {
-  const group = await client.get(`/Groups/${groupId}`);
-  const members = group.members || [Number(group.adminID)];
-  const updatedMembers = members.filter(id => Number(id) !== Number(userId));
-  return client.put(`/Groups/${groupId}`, {
-    ...group,
-    members: updatedMembers
-  });
-};
+// DELETE /Groups/:groupId/leave/:userId
+export const leaveGroup = (groupId, userId) =>
+  client.delete(`/Groups/${groupId}/leave/${userId}`);
 
-/** Get members of a group */
-export const getGroupMembers = async (groupId) => {
-  const [group, users] = await Promise.all([
-    client.get(`/Groups/${groupId}`),
-    client.get('/Users')
-  ]);
-  const memberIds = group.members || [Number(group.adminID)];
-  return users.filter(u => memberIds.includes(Number(u.userID)));
-};
+// POST /Groups/:groupId/members/add/:userId
+export const addGroupMember = (groupId, userId) =>
+  client.post(`/Groups/${groupId}/members/add/${userId}`);
 
-/** Add a member to a group */
-export const addGroupMember = joinGroup;
+// DELETE /Groups/:groupId/members/remove/:userId
+export const removeGroupMember = (groupId, userId) =>
+  client.delete(`/Groups/${groupId}/members/remove/${userId}`);
 
-/** Remove a member from a group */
-export const removeGroupMember = leaveGroup;
+// GET /Groups/:groupId/messages
+export const getGroupMessages = async (groupId) =>
+  (await client.get(`/Groups/${groupId}/messages`)).data;
 
-// ── Group messaging ────────────────────────────────────────────────────────
+// POST /Groups/:groupId/messages/send/:userId  — body: { message_text }
+export const sendGroupMessage = (groupId, userId, messageData) =>
+  client.post(`/Groups/${groupId}/messages/send/${userId}`, messageData);
 
-/** GET group messages */
-export const getGroupMessages = (groupId) => {
-  const parsedId = Number(groupId)
-  return client.get('/Messages', {
-    params: {
-      groupID: isNaN(parsedId) ? groupId : parsedId
-    }
-  })
-}
+// GET /Users/:userId/friends/groups
+export const getFriendsGroups = async (userId) =>
+  (await client.get(`/Users/${userId}/friends/groups`)).data;
 
-/** POST group message */
-export const sendGroupMessage = (groupId, userId, messageData) => {
-  const parsedId = Number(groupId)
-  return client.post('/Messages', {
-    messageID: Date.now(),
-    senderID: Number(userId),
-    groupID: isNaN(parsedId) ? groupId : parsedId,
-    message_text: messageData.message_text,
-    timestamp: new Date().toISOString()
-  })
-}
-
-// ── Group-friend relations ─────────────────────────────────────────────────
-
-/** GET friends groups */
-export const getFriendsGroups = async (userId) => {
-  return client.get('/Groups');
-};
-
-/** GET friends in a group */
-export const getFriendsInGroup = (groupId) =>
-  getGroupMembers(groupId);
+// GET /Groups/:groupId/friends?userId=  (falls back to all members if userId omitted)
+export const getFriendsInGroup = async (groupId, userId) =>
+  (await client.get(`/Groups/${groupId}/friends`, { params: { userId } })).data;

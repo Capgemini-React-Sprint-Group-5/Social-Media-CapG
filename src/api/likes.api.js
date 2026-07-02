@@ -1,29 +1,13 @@
-import client from './client.js'
+import client from "./client.js";
 
-/**
- * api/likes.api.js  — Owner: B
- */
+// GET /Posts/:postId/likes
+export const getLikesByPost = async (postId) =>
+  (await client.get(`/Posts/${postId}/likes`)).data;
 
-/** GET /Likes */
-export const getLikesByPost = (postId) =>
-  client.get('/Likes', {
-    params: {
-      postID: Number(postId),
-    },
-  });
+// POST /Posts/:postId/likes/add/:userId
+export const addLike = (postId, userId) =>
+  client.post(`/Posts/${postId}/likes/add/${userId}`);
 
-/** POST /Likes */
-export const addLike = (postId, userId) => {
-  const likeID = Date.now();
-  return client.post('/Likes', {
-    id: likeID,
-    likeID: likeID,
-    postID: Number(postId),
-    userID: Number(userId),
-    timestamp: new Date().toISOString(),
-  });
-};
-
-/** DELETE /Likes/:likeId */
-export const removeLike = (likeId) =>
-  client.delete(`/Likes/${likeId}`);
+// DELETE /Posts/:postId/likes/remove/:likeId
+export const removeLike = (postId, likeId) =>
+  client.delete(`/Posts/${postId}/likes/remove/${likeId}`);
