@@ -1,0 +1,108 @@
+.glass-card{
+
+    background:rgba(255,255,255,.80);
+
+    backdrop-filter:blur(18px);
+
+    -webkit-backdrop-filter:blur(18px);
+
+    border:1px solid rgba(255,255,255,.35);
+
+    border-radius:22px;
+
+    box-shadow:var(--shadow-md);
+
+}
+.post-card{
+
+    background:white;
+
+    border:none;
+
+    border-radius:22px;
+
+    box-shadow:var(--shadow-md);
+
+    transition:.3s ease;
+
+}
+.post-card:hover{
+
+    transform:translateY(-4px);
+
+    box-shadow:var(--shadow-lg);
+
+}
+.btn-primary-gradient{
+
+    background:var(--primary-gradient);
+
+    color:white;
+
+    border:none;
+
+    border-radius:14px;
+
+    padding:.65rem 1.4rem;
+
+    font-weight:600;
+
+    transition:.3s;
+
+}
+.btn-primary-gradient:hover{
+
+    transform:translateY(-2px);
+
+    color:white;
+
+    box-shadow:
+
+    0 12px 30px rgba(79,70,229,.25);
+
+}
+.btn-soft{
+
+    background:white;
+
+    color:var(--primary);
+
+    border:1px solid var(--border);
+
+    border-radius:14px;
+
+}
+.btn-soft:hover{
+
+    background:#EEF2FF;
+
+}
+.form-control{
+
+    border-radius:14px;
+
+    border:1px solid var(--border);
+
+    padding:12px;
+
+}
+.form-control:focus{
+
+    border-color:var(--primary);
+
+    box-shadow:
+
+    0 0 0 .2rem rgba(79,70,229,.15);
+
+}
+.avatar{
+
+    width:52px;
+
+    height:52px;
+
+    border-radius:50%;
+
+    object-fit:cover;
+
+}

@@ -6,9 +6,12 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { Provider as ReduxProvider } from 'react-redux'
 import { store } from './store/index.js'
 import App from './App.jsx'
-
+import './styles/theme.css'
+import './styles/components.css'
+import './styles/animations.css'
 // Bootstrap CSS — imported once here, available everywhere
 import 'bootstrap/dist/css/bootstrap.min.css'
+import 'bootstrap-icons/font/bootstrap-icons.css'
 
 const queryClient = new QueryClient({
   defaultOptions: {
