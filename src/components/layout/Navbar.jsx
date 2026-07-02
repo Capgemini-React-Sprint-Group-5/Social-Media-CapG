@@ -20,14 +20,7 @@ export default function Navbar() {
     navigate('/login')
   }
 
-<<<<<<< Updated upstream
-  return (
-    <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
-      <div className="container">
-        <Link className="navbar-brand fw-bold" to="/home">SMP</Link>
-=======
   const isActiveRoute = (path) => location.pathname === path
->>>>>>> Stashed changes
 
   return (
     <nav 
@@ -75,24 +68,6 @@ export default function Navbar() {
 
         {/* NAVIGATION LINKS */}
         <div className="collapse navbar-collapse" id="navbarNav">
-<<<<<<< Updated upstream
-          <ul className="navbar-nav me-auto">
-            <li className="nav-item">
-              <Link className="nav-link" to="/home">Feed</Link>
-            </li>
-            <li className="nav-item">
-              <Link className="nav-link" to="/friends">Friends</Link>
-            </li>
-            <li className="nav-item">
-              <Link className="nav-link" to="/messages">Messages</Link>
-            </li>
-            <li className="nav-item">
-              <Link className="nav-link" to="/groups">Groups</Link>
-            </li>
-            <li className="nav-item">
-              <Link className="nav-link" to="/search">Search</Link>
-            </li>
-=======
           <ul className="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4 gap-1.5">
             {[
               { path: '/', label: 'Feed', icon: 'bi-house-door-fill' },
@@ -140,7 +115,6 @@ export default function Navbar() {
                 </li>
               )
             })}
->>>>>>> Stashed changes
           </ul>
 
           {/* RIGHT UTILITIES CORNER */}
