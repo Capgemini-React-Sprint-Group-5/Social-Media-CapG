@@ -1,59 +1,48 @@
-import client from "./client";
+import client from "./client.js";
 
-/* ===========================
-   Comments
-=========================== */
+// GET /Comments
+export const getAllComments = async () => (await client.get("/Comments")).data;
 
-/** GET /Comments */
-export const getAllComments = () =>
-  client.get("/Comments");
+// GET /Comments/:commentId
+export const getCommentById = async (commentId) =>
+  (await client.get(`/Comments/${commentId}`)).data;
 
-/** GET /Comments/:commentID */
-export const getCommentById = (commentId) =>
-  client.get(`/Comments/${commentId}`);
+// GET /Posts/:postId/comments
+export const getCommentsByPost = async (postId) =>
+  (await client.get(`/Posts/${postId}/comments`)).data;
 
-/** GET comments of a post */
-export const getCommentsByPost = (postId) =>
-  client.get("/Comments", {
-    params: {
-      postID: Number(postId),
-    },
-  });
+// no by-user endpoint — filtered client-side over getAllComments
+export const getCommentsByUser = async (userId) => {
+  const comments = await getAllComments();
+  return comments.filter((c) => String(c.userID) === String(userId));
+};
 
-/** GET comments made by a user */
-export const getCommentsByUser = (userId) =>
-  client.get("/Comments", {
-    params: {
-      userID: Number(userId),
-    },
-  });
-
-/** Create Comment */
+// POST /Comments  (or POST /Posts/:postId/comments if postId is known up front)
 export const createComment = (commentData) =>
   client.post("/Comments", commentData);
+export const addCommentToPost = (postId, commentData) =>
+  client.post(`/Posts/${postId}/comments`, commentData);
 
-/** Update Comment */
+// PUT /Comments/:commentId
 export const updateComment = (commentId, commentData) =>
   client.put(`/Comments/${commentId}`, commentData);
 
-/** Delete Comment */
+// DELETE /Comments/:commentId
 export const deleteComment = (commentId) =>
   client.delete(`/Comments/${commentId}`);
 
-/* ===========================
-   Relations
-=========================== */
+// DELETE /Posts/:postId/comments/:commentId
+export const deleteCommentFromPost = (postId, commentId) =>
+  client.delete(`/Posts/${postId}/comments/${commentId}`);
 
-/** Fetch post for a comment */
+// GET /Post/:postId  (via comment's postID)
 export const getCommentPost = async (commentId) => {
-  const comment = await client.get(`/Comments/${commentId}`);
-
-  return client.get(`/Posts/${comment.postID}`);
+  const comment = await getCommentById(commentId);
+  return (await client.get(`/Post/${comment.postID}`)).data;
 };
 
-/** Fetch user who wrote the comment */
+// GET /Users/:userId  (via comment's userID)
 export const getCommentUser = async (commentId) => {
-  const comment = await client.get(`/Comments/${commentId}`);
-
-  return client.get(`/Users/${comment.userID}`);
+  const comment = await getCommentById(commentId);
+  return (await client.get(`/Users/${comment.userID}`)).data;
 };
