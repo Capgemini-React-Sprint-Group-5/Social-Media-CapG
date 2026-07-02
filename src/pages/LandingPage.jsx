@@ -22,11 +22,6 @@ export default function LandingPage() {
 
   const features = [
     {
-      icon: "💬",
-      title: "Real-time Chats",
-      desc: "Message friends and groups instantly.",
-    },
-    {
       icon: "📸",
       title: "Share Moments",
       desc: "Post photos, thoughts & updates in seconds.",
@@ -253,7 +248,10 @@ export default function LandingPage() {
         </div>
 
         {/* Feature grid */}
-        <div className="row g-4 justify-content-center" style={{ marginTop: "70px", paddingBottom: "90px" }}>
+        <div
+          className="row g-4 justify-content-center"
+          style={{ marginTop: "70px", paddingBottom: "90px" }}
+        >
           {features.map((f) => (
             <div className="col-6 col-md-3" key={f.title}>
               <div
