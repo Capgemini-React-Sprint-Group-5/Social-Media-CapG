@@ -1951,17 +1951,10 @@
   ],
   "Friends": [
     {
-      "friendshipID": 100001,
-      "userID1": 1,
-      "userID2": 2,
-      "status": "accepted",
-      "id": "100001"
-    },
-    {
       "friendshipID": 100002,
       "userID1": 2,
       "userID2": 3,
-      "status": "pending",
+      "status": "accepted",
       "id": "100002"
     },
     {
@@ -1977,13 +1970,6 @@
       "userID2": 2,
       "status": "accepted",
       "id": "100004"
-    },
-    {
-      "friendshipID": 100005,
-      "userID1": 5,
-      "userID2": 7,
-      "status": "accepted",
-      "id": "100005"
     },
     {
       "friendshipID": 100006,
@@ -2397,6 +2383,20 @@
       "userID2": 63,
       "status": "pending",
       "id": "100064"
+    },
+    {
+      "friendshipID": 100065,
+      "userID1": 1,
+      "userID2": 4,
+      "status": "accepted",
+      "id": "100065"
+    },
+    {
+      "friendshipID": 100066,
+      "userID1": 3,
+      "userID2": 7,
+      "status": "accepted",
+      "id": "100066"
     }
   ],
   "Messages": [

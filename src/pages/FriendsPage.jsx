@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { selectCurrentUser } from '../store/index.js';
 import {
@@ -12,19 +12,10 @@ import { useUserSearch } from '../hooks/useUsers.js';
 import Loader from '../components/common/Loader.jsx';
 import Avatar from '../components/common/Avatar.jsx';
 
-/**
- * FriendsPage  — Owner: C (Authentication & Data Layer)
- *
- * This page now covers the full friend entity workflow:
- *  - View friends and remove them
- *  - View pending incoming requests (accept / decline)
- *  - Search for other users and send friend requests
- */
 export default function FriendsPage() {
   const currentUser = useSelector(selectCurrentUser);
   const userId = currentUser?.userId;
 
-  // Tab state
   const [activeTab, setActiveTab] = useState('friends');
 
   // ── Friends list ──────────────────────────────────────────────────────
@@ -46,11 +37,13 @@ export default function FriendsPage() {
   const { mutate: removeFriend, isPending: removing } = useRemoveFriend();
   const { mutate: sendRequest, isPending: sending } = useSendFriendRequest();
 
+  // ── Track which users are currently being processed ──────────────────
+  const [processingUsers, setProcessingUsers] = useState(new Set());
+
   // ── Search ────────────────────────────────────────────────────────────
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
 
-  // Debounce search input (300ms)
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedQuery(searchQuery.trim());
@@ -64,17 +57,24 @@ export default function FriendsPage() {
     isError: searchError,
   } = useUserSearch(debouncedQuery);
 
-  // ── Helper: check friendship status ──────────────────────────────────
+  // ── Helper: Get user ID from any user object ──────────────────────────
+  const getUserId = (user) => user?.userID ?? user?.userId ?? user?.id;
+
+  // ── Helper: Check friendship status ──────────────────────────────────
   const friendshipStatus = (targetUserId) => {
-    if (Number(targetUserId) === Number(userId)) return 'self';
+    const targetNum = Number(targetUserId);
+    if (targetNum === Number(userId)) return 'self';
+
     const isFriend = friends.some(
-      (f) => Number(f.friendId) === Number(targetUserId)
+      (f) => Number(f.friendId) === targetNum
     );
     if (isFriend) return 'friend';
+
     const isPending = pending.some(
-      (p) => Number(p.friendId) === Number(targetUserId)
+      (p) => Number(p.friendId) === targetNum
     );
     if (isPending) return 'pending';
+
     return 'none';
   };
 
@@ -83,56 +83,95 @@ export default function FriendsPage() {
     if (window.confirm('Remove this friend?')) {
       removeFriend(
         { userId, friendId },
-        {
-          onSuccess: () => {
-            refetchFriends();
-          },
-        }
+        { onSuccess: () => refetchFriends() }
       );
     }
   };
 
   const handleAcceptRequest = (friendId) => {
+    setProcessingUsers(prev => new Set(prev).add(friendId));
     addFriend(
       { userId, friendId },
       {
         onSuccess: () => {
           refetchFriends();
           refetchPending();
+          setProcessingUsers(prev => {
+            const next = new Set(prev);
+            next.delete(friendId);
+            return next;
+          });
         },
+        onError: () => {
+          setProcessingUsers(prev => {
+            const next = new Set(prev);
+            next.delete(friendId);
+            return next;
+          });
+        }
       }
     );
   };
 
   const handleDeclineRequest = (friendId) => {
+    setProcessingUsers(prev => new Set(prev).add(friendId));
     removeFriend(
       { userId, friendId },
       {
         onSuccess: () => {
           refetchPending();
+          setProcessingUsers(prev => {
+            const next = new Set(prev);
+            next.delete(friendId);
+            return next;
+          });
         },
+        onError: () => {
+          setProcessingUsers(prev => {
+            const next = new Set(prev);
+            next.delete(friendId);
+            return next;
+          });
+        }
       }
     );
   };
 
   const handleSendRequest = (friendId) => {
+    // Prevent duplicate requests
+    const status = friendshipStatus(friendId);
+    if (status !== 'none') return;
+
+    setProcessingUsers(prev => new Set(prev).add(friendId));
     sendRequest(
       { userId, friendId },
       {
         onSuccess: () => {
-          // Refetch pending to update the "pending" status
           refetchPending();
+          setProcessingUsers(prev => {
+            const next = new Set(prev);
+            next.delete(friendId);
+            return next;
+          });
         },
+        onError: () => {
+          setProcessingUsers(prev => {
+            const next = new Set(prev);
+            next.delete(friendId);
+            return next;
+          });
+        }
       }
     );
   };
 
+  // ── Check if a user is being processed ──────────────────────────────
+  const isProcessing = (friendId) => processingUsers.has(friendId);
+
   // ── Render helpers ────────────────────────────────────────────────────
   const renderFriendsTab = () => (
     <div>
-      <h6 className="mb-3">
-        My Friends ({friends.length})
-      </h6>
+      <h6 className="mb-3">My Friends ({friends.length})</h6>
       {loadingFriends ? (
         <Loader size="sm" />
       ) : friends.length === 0 ? (
@@ -140,17 +179,17 @@ export default function FriendsPage() {
       ) : (
         friends.map((f) => (
           <div
-            key={f.friendId}
+            key={f.friendshipId || f.friendId}
             className="d-flex align-items-center gap-2 card card-body mb-2"
           >
             <Avatar username={f.username} size={36} />
             <span className="flex-grow-1 fw-semibold">{f.username}</span>
             <button
               className="btn btn-outline-danger btn-sm"
-              disabled={removing}
+              disabled={removing || isProcessing(f.friendId)}
               onClick={() => handleRemoveFriend(f.friendId)}
             >
-              Remove
+              {isProcessing(f.friendId) ? 'Removing...' : 'Remove'}
             </button>
           </div>
         ))
@@ -160,9 +199,7 @@ export default function FriendsPage() {
 
   const renderPendingTab = () => (
     <div>
-      <h6 className="mb-3">
-        Pending Requests ({pending.length})
-      </h6>
+      <h6 className="mb-3">Pending Requests ({pending.length})</h6>
       {loadingPending ? (
         <Loader size="sm" />
       ) : pending.length === 0 ? (
@@ -170,24 +207,24 @@ export default function FriendsPage() {
       ) : (
         pending.map((req) => (
           <div
-            key={req.friendshipId}
+            key={req.friendshipId || req.friendId}
             className="d-flex align-items-center gap-2 card card-body mb-2"
           >
             <Avatar username={req.username} size={36} />
             <span className="flex-grow-1 fw-semibold">{req.username}</span>
             <button
               className="btn btn-success btn-sm"
-              disabled={adding}
+              disabled={adding || isProcessing(req.friendId)}
               onClick={() => handleAcceptRequest(req.friendId)}
             >
-              Accept
+              {isProcessing(req.friendId) ? 'Accepting...' : 'Accept'}
             </button>
             <button
               className="btn btn-outline-secondary btn-sm"
-              disabled={removing}
+              disabled={removing || isProcessing(req.friendId)}
               onClick={() => handleDeclineRequest(req.friendId)}
             >
-              Decline
+              {isProcessing(req.friendId) ? 'Declining...' : 'Decline'}
             </button>
           </div>
         ))
@@ -219,36 +256,39 @@ export default function FriendsPage() {
 
       {!searching &&
         searchResults.map((u) => {
-          const status = friendshipStatus(u.userId);
+          const uid = getUserId(u);
+          if (!uid) return null;
+
+          const status = friendshipStatus(uid);
+          const processing = isProcessing(uid);
+
           let actionButton = null;
 
           if (status === 'self') {
-            actionButton = (
-              <span className="badge bg-secondary">You</span>
-            );
+            actionButton = <span className="badge bg-secondary">You</span>;
           } else if (status === 'friend') {
-            actionButton = (
-              <span className="badge bg-success">Friend</span>
-            );
+            actionButton = <span className="badge bg-success">Friend</span>;
           } else if (status === 'pending') {
             actionButton = (
-              <span className="badge bg-warning text-dark">Pending</span>
+              <span className="badge bg-warning text-dark">
+                {processing ? 'Sending...' : 'Pending'}
+              </span>
             );
           } else {
             actionButton = (
               <button
                 className="btn btn-primary btn-sm"
-                disabled={sending}
-                onClick={() => handleSendRequest(u.userId)}
+                disabled={sending || processing}
+                onClick={() => handleSendRequest(uid)}
               >
-                Add Friend
+                {processing ? 'Adding...' : 'Add Friend'}
               </button>
             );
           }
 
           return (
             <div
-              key={u.userId}
+              key={uid}
               className="d-flex align-items-center gap-2 card card-body mb-2"
             >
               <Avatar username={u.username} size={36} />
@@ -265,7 +305,6 @@ export default function FriendsPage() {
     <div>
       <h5 className="mb-3">Friends</h5>
 
-      {/* Tabs */}
       <ul className="nav nav-tabs mb-4">
         <li className="nav-item">
           <button
@@ -305,7 +344,6 @@ export default function FriendsPage() {
         </li>
       </ul>
 
-      {/* Tab panels */}
       {activeTab === 'friends' && renderFriendsTab()}
       {activeTab === 'pending' && renderPendingTab()}
       {activeTab === 'search' && renderSearchTab()}
