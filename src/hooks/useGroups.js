@@ -97,6 +97,12 @@ export function useJoinGroup() {
       queryClient.invalidateQueries({
         queryKey: queryKeys.groups.members(groupId),
       });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.groups.all(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.groups.byId(groupId),
+      });
     },
   });
 }
@@ -109,6 +115,12 @@ export function useLeaveGroup() {
     onSuccess: (_, { groupId }) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.groups.members(groupId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.groups.all(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.groups.byId(groupId),
       });
     },
   });

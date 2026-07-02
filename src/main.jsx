@@ -9,6 +9,7 @@ import App from './App.jsx'
 
 // Bootstrap CSS — imported once here, available everywhere
 import 'bootstrap/dist/css/bootstrap.min.css'
+import './index.css'
 
 const queryClient = new QueryClient({
   defaultOptions: {

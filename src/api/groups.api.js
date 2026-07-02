@@ -17,12 +17,15 @@ export const getGroupById = (groupId) =>
   client.get(`/Groups/${groupId}`)
 
 /** POST /Groups  — body: { groupName, adminID } */
-export const createGroup = (groupData) =>
-  client.post('/Groups', {
+export const createGroup = (groupData) => {
+  const numericId = Date.now()
+  return client.post('/Groups', {
     ...groupData,
-    groupID: Date.now(),
+    groupID: numericId,
+    id: String(numericId),
     members: [Number(groupData.adminID)]
   })
+}
 
 /** PUT /Groups/:groupId  — body: { groupName } */
 export const updateGroup = (groupId, groupData) =>
@@ -78,22 +81,26 @@ export const removeGroupMember = leaveGroup;
 // ── Group messaging ────────────────────────────────────────────────────────
 
 /** GET group messages */
-export const getGroupMessages = (groupId) =>
-  client.get('/Messages', {
+export const getGroupMessages = (groupId) => {
+  const parsedId = Number(groupId)
+  return client.get('/Messages', {
     params: {
-      groupID: Number(groupId)
+      groupID: isNaN(parsedId) ? groupId : parsedId
     }
-  });
+  })
+}
 
 /** POST group message */
-export const sendGroupMessage = (groupId, userId, messageData) =>
-  client.post('/Messages', {
+export const sendGroupMessage = (groupId, userId, messageData) => {
+  const parsedId = Number(groupId)
+  return client.post('/Messages', {
     messageID: Date.now(),
     senderID: Number(userId),
-    groupID: Number(groupId),
+    groupID: isNaN(parsedId) ? groupId : parsedId,
     message_text: messageData.message_text,
     timestamp: new Date().toISOString()
-  });
+  })
+}
 
 // ── Group-friend relations ─────────────────────────────────────────────────
 
