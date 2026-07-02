@@ -21,7 +21,7 @@ export default function Navbar() {
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
       <div className="container">
-        <Link className="navbar-brand fw-bold" to="/">SMP</Link>
+        <Link className="navbar-brand fw-bold" to="/home">SMP</Link>
 
         <button
           className="navbar-toggler"
@@ -35,7 +35,7 @@ export default function Navbar() {
         <div className="collapse navbar-collapse" id="navbarNav">
           <ul className="navbar-nav me-auto">
             <li className="nav-item">
-              <Link className="nav-link" to="/">Feed</Link>
+              <Link className="nav-link" to="/home">Feed</Link>
             </li>
             <li className="nav-item">
               <Link className="nav-link" to="/friends">Friends</Link>
