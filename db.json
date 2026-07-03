@@ -2919,6 +2919,158 @@
       "message_text": "Hello",
       "timestamp": "2026-07-01T11:02:30.681Z",
       "id": "yYbUJ_GMZkw"
+    },
+    {
+      "messageID": 1782971111763,
+      "senderID": 1,
+      "groupID": null,
+      "message_text": "Hello",
+      "timestamp": "2026-07-02T05:45:11.763Z",
+      "id": "fkgOl0Oyp68"
+    },
+    {
+      "messageID": 1782972130410,
+      "senderID": 17,
+      "groupID": null,
+      "message_text": "Hello World, welcome to the AI community!",
+      "timestamp": "2026-07-02T06:02:10.410Z",
+      "id": "k2qj2SHnfBs"
+    },
+    {
+      "messageID": 1782972148529,
+      "senderID": 17,
+      "groupID": null,
+      "message_text": "Hello World, welcome to the AI community!",
+      "timestamp": "2026-07-02T06:02:28.529Z",
+      "id": "btYMuE7NgO8"
+    },
+    {
+      "messageID": 1782972174995,
+      "senderID": 17,
+      "groupID": null,
+      "message_text": "Test",
+      "timestamp": "2026-07-02T06:02:54.995Z",
+      "id": "W8ufSpDUF7k"
+    },
+    {
+      "messageID": 1782972188748,
+      "senderID": 17,
+      "groupID": null,
+      "message_text": "Hello World, welcome to the AI community!",
+      "timestamp": "2026-07-02T06:03:08.748Z",
+      "id": "SXuNgxdL0r4"
+    },
+    {
+      "messageID": 1782972199352,
+      "senderID": 17,
+      "groupID": null,
+      "message_text": "Hello",
+      "timestamp": "2026-07-02T06:03:19.352Z",
+      "id": "B8tI4j1i53g"
+    },
+    {
+      "messageID": 1782972219879,
+      "senderID": 17,
+      "groupID": null,
+      "message_text": "Test Message",
+      "timestamp": "2026-07-02T06:03:39.879Z",
+      "id": "9ybFrtEcRJQ"
+    },
+    {
+      "messageID": 1782972231310,
+      "senderID": 17,
+      "groupID": null,
+      "message_text": "Test Message",
+      "timestamp": "2026-07-02T06:03:51.310Z",
+      "id": "F9HmjlpRBes"
+    },
+    {
+      "messageID": 1782972248554,
+      "senderID": 17,
+      "groupID": null,
+      "message_text": "Hello",
+      "timestamp": "2026-07-02T06:04:08.554Z",
+      "id": "iwneWZrod_4"
+    },
+    {
+      "messageID": 1782972261855,
+      "senderID": 17,
+      "groupID": null,
+      "message_text": "Hello",
+      "timestamp": "2026-07-02T06:04:21.855Z",
+      "id": "q9UWmyA1zLo"
+    },
+    {
+      "messageID": 1782972273446,
+      "senderID": 17,
+      "groupID": null,
+      "message_text": "Hello",
+      "timestamp": "2026-07-02T06:04:33.446Z",
+      "id": "fX7pTU4SAFg"
+    },
+    {
+      "messageID": 1782972429262,
+      "senderID": 17,
+      "groupID": null,
+      "message_text": "Hello World, welcome to the AI community!",
+      "timestamp": "2026-07-02T06:07:09.262Z",
+      "id": "xsGMahj1rpQ"
+    },
+    {
+      "messageID": 1782972541178,
+      "senderID": 17,
+      "groupID": 1001,
+      "message_text": "Glad to join this channel!",
+      "timestamp": "2026-07-02T06:09:01.178Z",
+      "id": "4H9KctdhPZ8"
+    },
+    {
+      "messageID": 1782972757692,
+      "senderID": 17,
+      "groupID": "YMhD_UF1BEc",
+      "message_text": "Welcome to the Web Wizards channel!",
+      "timestamp": "2026-07-02T06:12:37.692Z",
+      "id": "j9BIP6-YzcU"
+    },
+    {
+      "messageID": 1782972947436,
+      "senderID": 17,
+      "groupID": 1001,
+      "message_text": "Glad to join this channel!",
+      "timestamp": "2026-07-02T06:15:47.436Z",
+      "id": "OaS21GHu98w"
+    },
+    {
+      "messageID": 1782973164459,
+      "senderID": 1,
+      "groupID": 1002,
+      "message_text": "Hello ",
+      "timestamp": "2026-07-02T06:19:24.459Z",
+      "id": "K4T44dW_Vyo"
+    },
+    {
+      "messageID": 1782973210957,
+      "senderID": 2,
+      "groupID": 1002,
+      "message_text": "Hii",
+      "timestamp": "2026-07-02T06:20:10.957Z",
+      "id": "nEUOdx61Pzc"
+    },
+    {
+      "messageID": 1782973704346,
+      "senderID": 2,
+      "groupID": "ttm5ZvX0n3w",
+      "message_text": "Hello",
+      "timestamp": "2026-07-02T06:28:24.346Z",
+      "id": "VPuPvBCNt38"
+    },
+    {
+      "messageID": 1782973738906,
+      "senderID": 1,
+      "groupID": "ttm5ZvX0n3w",
+      "message_text": "Hii",
+      "timestamp": "2026-07-02T06:28:58.906Z",
+      "id": "Fcuemm_E0I0"
     }
   ],
   "Notifications": [
@@ -3376,13 +3528,19 @@
       "groupID": 1001,
       "groupName": "Group 1",
       "adminID": 1,
-      "id": "1001"
+      "id": "1001",
+      "members": [
+        1
+      ]
     },
     {
       "groupID": 1002,
       "groupName": "Group 2",
       "adminID": 2,
-      "id": "1002"
+      "id": "1002",
+      "members": [
+        2
+      ]
     },
     {
       "groupID": 1003,
@@ -3755,6 +3913,35 @@
       "groupName": "Gaming Community 2.0",
       "adminID": 64,
       "id": "1064"
+    },
+    {
+      "groupName": "AI Adventurers",
+      "adminID": 17,
+      "groupID": 1782972107078,
+      "members": [
+        17,
+        18,
+        5
+      ],
+      "id": "G0WW0Fe30Wk"
+    },
+    {
+      "groupName": "Web Wizards",
+      "adminID": 17,
+      "groupID": 1782972734088,
+      "id": "YMhD_UF1BEc",
+      "members": [
+        17
+      ]
+    },
+    {
+      "groupName": "react",
+      "adminID": 2,
+      "groupID": 1782973683748,
+      "id": "ttm5ZvX0n3w",
+      "members": [
+        2
+      ]
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"

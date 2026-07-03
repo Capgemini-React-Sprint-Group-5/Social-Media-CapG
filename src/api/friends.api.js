@@ -22,7 +22,7 @@ export const getFriends = async (userId) => {
     });
 };
 
-// GET /Users/:userId/friend-requests/pending
+// GET /Users/:userId/friend-requests/pending (requests received)
 export const getPendingRequests = async (userId) => {
   const [pending, users] = await Promise.all([
     (await client.get(`/Users/${userId}/friend-requests/pending`)).data,
