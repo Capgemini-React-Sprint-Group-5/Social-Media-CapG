@@ -47,7 +47,7 @@ export default function RegisterPage() {
               email: values.email,
             }),
           );
-          navigate("/");
+          navigate("/home");
         },
       });
     },
