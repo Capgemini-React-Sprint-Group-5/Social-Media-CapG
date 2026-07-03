@@ -27,7 +27,7 @@ export default function CreatePostPage() {
     onSubmit: (values) => {
       createPost(
         { userId: currentUser.userId, content: values.content },
-        { onSuccess: () => navigate("/") },
+        { onSuccess: () => navigate("/home") },
       );
     },
   });
