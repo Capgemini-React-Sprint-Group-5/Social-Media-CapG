@@ -71,7 +71,7 @@ export default function GroupsPage() {
 
   if (Array.isArray(groups)) {
     groups.forEach((g) => {
-      const members = g.members || [Number(g.adminID)]
+      const members = (g.members || [g.adminID]).map(Number)
       const isMember = members.includes(currentUserIdNum)
       if (isMember) {
         myGroups.push(g)
