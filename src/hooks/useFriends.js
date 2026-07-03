@@ -24,19 +24,22 @@ export function useSendFriendRequest() {
     mutationFn: ({ userId, friendId }) => friendsApi.sendFriendRequest(userId, friendId),
     onSuccess: (_, { userId }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.friends.pending(userId) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.friends.sent(userId) });
     },
   })
 }
 
 export function useAddFriend() {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ userId, friendId }) => friendsApi.addFriend(userId, friendId),
+    mutationFn: ({ userId, friendId }) =>
+      friendsApi.addFriend(userId, friendId), // ✅ Now calls the correct accept endpoint
     onSuccess: (_, { userId }) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.friends.list(userId) })
-      queryClient.invalidateQueries({ queryKey: queryKeys.friends.pending(userId) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.friends.list(userId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.friends.pending(userId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.friends.sent(userId) });
     },
-  })
+  });
 }
 
 export function useRemoveFriend() {
@@ -47,4 +50,46 @@ export function useRemoveFriend() {
       queryClient.invalidateQueries({ queryKey: queryKeys.friends.list(userId) })
     },
   })
+}
+
+export function useSentRequests(userId) {
+    return useQuery({
+        queryKey: queryKeys.friends.sent(userId),
+        queryFn: () => friendsApi.getSentRequests(userId),
+        enabled: !!userId,
+    });
+}
+
+export function useCancelFriendRequest() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ userId, friendId }) =>
+      friendsApi.cancelFriendRequest(userId, friendId),
+    onMutate: async ({ userId, friendId }) => {
+      await queryClient.cancelQueries({
+        queryKey: queryKeys.friends.sent(userId),
+      });
+      const previous =
+        queryClient.getQueryData(queryKeys.friends.sent(userId)) || [];
+      queryClient.setQueryData(
+        queryKeys.friends.sent(userId),
+        (old = []) =>
+          old.filter(
+            (r) => Number(r.userID2) !== Number(friendId)
+          )
+      );
+      return { previous, userId };
+    },
+    onError: (_err, _vars, context) => {
+      queryClient.setQueryData(
+        queryKeys.friends.sent(context.userId),
+        context.previous
+      );
+    },
+    onSettled: (_data, _err, { userId }) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.friends.sent(userId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.friends.pending(userId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.friends.list(userId) });
+    },
+  });
 }

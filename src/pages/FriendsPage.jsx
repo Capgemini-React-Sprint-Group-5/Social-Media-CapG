@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { selectCurrentUser } from '../store/index.js';
-import { useFriends, usePendingRequests, useAddFriend, useRemoveFriend, useSendFriendRequest } from '../hooks/useFriends.js';
+import { useFriends, usePendingRequests, useAddFriend, useRemoveFriend, useSendFriendRequest, useSentRequests, useCancelFriendRequest } from '../hooks/useFriends.js';
 import { useUserSearch } from '../hooks/useUsers.js';
 import Loader from '../components/common/Loader.jsx';
 import Avatar from '../components/common/Avatar.jsx';
@@ -9,7 +9,6 @@ import Avatar from '../components/common/Avatar.jsx';
 export default function FriendsPage() {
   const currentUser = useSelector(selectCurrentUser);
   const userId = currentUser?.userId;
-
   const [activeTab, setActiveTab] = useState('friends');
 
   // ── Friends list ──────────────────────────────────────────────────────
@@ -26,6 +25,9 @@ export default function FriendsPage() {
     refetch: refetchPending,
   } = usePendingRequests(userId);
 
+  const { data: sentRequests = [] } = useSentRequests(userId);
+  const addFriendMutation = useAddFriend();
+  const cancelFriendMutation = useCancelFriendRequest();
   // ── Mutations ────────────────────────────────────────────────────────
   const { mutate: addFriend, isPending: adding } = useAddFriend();
   const { mutate: removeFriend, isPending: removing } = useRemoveFriend();
@@ -56,20 +58,24 @@ export default function FriendsPage() {
 
   // ── Helper: Check friendship status ──────────────────────────────────
   const friendshipStatus = (targetUserId) => {
-    const targetNum = Number(targetUserId);
-    if (targetNum === Number(userId)) return 'self';
-
+    if (Number(targetUserId) === Number(userId))
+      return "self";
     const isFriend = friends.some(
-      (f) => Number(f.friendId) === targetNum
+      (f) => Number(f.friendId) === Number(targetUserId)
     );
-    if (isFriend) return 'friend';
-
-    const isPending = pending.some(
-      (p) => Number(p.friendId) === targetNum
+    if (isFriend)
+      return "friend";
+    const sent = sentRequests.some(
+      (r) => Number(r.userID2) === Number(targetUserId)
     );
-    if (isPending) return 'pending';
-
-    return 'none';
+    if (sent)
+      return "sent";
+    const received = pending.some(
+      (r) => Number(r.userID1) === Number(targetUserId)
+    );
+    if (received)
+      return "pending";
+    return "none";
   };
 
   // ── Handlers ──────────────────────────────────────────────────────────
@@ -80,6 +86,13 @@ export default function FriendsPage() {
         { onSuccess: () => refetchFriends() }
       );
     }
+  };
+
+  const handleCancelRequest = (friendId) => {
+    cancelFriendMutation.mutate({
+        userId,
+        friendId,
+    });
   };
 
   const handleAcceptRequest = (friendId) => {
@@ -329,10 +342,8 @@ export default function FriendsPage() {
         searchResults.map((u) => {
           const uid = getUserId(u);
           if (!uid) return null;
-
           const status = friendshipStatus(uid);
           const processing = isProcessing(uid);
-
           let actionButton = null;
 
           if (status === 'self') {
@@ -346,6 +357,17 @@ export default function FriendsPage() {
               <span className="badge bg-success d-flex align-items-center gap-1">
                 <i className="bi bi-check-circle"></i> Friend
               </span>
+            );
+          }  else if (status === 'sent') {
+            actionButton = (
+              <button
+                className="btn btn-warning btn-sm"
+                disabled={ processing || addFriendMutation.isPending || cancelFriendMutation.isPending }
+                onClick={() => handleCancelRequest(uid) }
+              >
+                Cancel Request
+              </button>
+
             );
           } else if (status === 'pending') {
             actionButton = (
@@ -366,7 +388,7 @@ export default function FriendsPage() {
             actionButton = (
               <button
                 className="btn btn-primary btn-sm d-flex align-items-center gap-1"
-                disabled={sending || processing}
+                disabled={ processing || addFriendMutation.isPending || cancelFriendMutation.isPending }
                 onClick={() => handleSendRequest(uid)}
               >
                 {processing ? (
