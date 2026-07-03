@@ -44,6 +44,34 @@ export default function LoginPage() {
     },
   });
 
+  // React to search results once the query settles (avoids dispatching mid-render)
+  useEffect(() => {
+    if (!searchUsername || isFetching) return;
+
+    if (isError) {
+      setLoginError("No account found with that username.");
+      setSearchUsername("");
+      return;
+    }
+
+    const user = Array.isArray(searchResult) ? searchResult[0] : searchResult;
+    const userId = user?.userID || user?.userId || user?.id;
+
+    if (userId) {
+      dispatch(
+        setUser({
+          userId: userId,
+          username: user.username,
+          email: user.email,
+        }),
+      );
+      navigate("/");
+    } else if (searchResult !== undefined) {
+      setLoginError("No account found with that username.");
+      setSearchUsername(""); // reset so the same username can be retried
+    }
+  }, [searchResult, isFetching, isError, searchUsername, dispatch, navigate]);
+
   return (
     <div
       className="container-fluid"
