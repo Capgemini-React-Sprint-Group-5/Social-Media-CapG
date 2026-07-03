@@ -2,19 +2,10 @@ import { useNavigate, Link } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { setUser } from "../store/slices/authSlice.js";
 import { useLoginUser } from "../hooks/useUsers.js";
 
-/**
- * LoginPage — Owner: A
- *
- * MOCK LOGIN FLOW:
- * 1. User enters username + password
- * 2. Call GET /api/users/search/:username
- * 3. If user found → store in Redux (setUser) → redirect to /
- * 4. No real password check — backend has no auth endpoint
- */
 export default function LoginPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -35,7 +26,7 @@ export default function LoginPage() {
           dispatch(
             setUser({ userId, username: user.username, email: user.email }),
           );
-          navigate("/");
+          navigate("/home");
         },
         onError: (err) => {
           setLoginError(err?.message || "Invalid username or password.");
@@ -43,34 +34,6 @@ export default function LoginPage() {
       });
     },
   });
-
-  // React to search results once the query settles (avoids dispatching mid-render)
-  useEffect(() => {
-    if (!searchUsername || isFetching) return;
-
-    if (isError) {
-      setLoginError("No account found with that username.");
-      setSearchUsername("");
-      return;
-    }
-
-    const user = Array.isArray(searchResult) ? searchResult[0] : searchResult;
-    const userId = user?.userID || user?.userId || user?.id;
-
-    if (userId) {
-      dispatch(
-        setUser({
-          userId: userId,
-          username: user.username,
-          email: user.email,
-        }),
-      );
-      navigate("/");
-    } else if (searchResult !== undefined) {
-      setLoginError("No account found with that username.");
-      setSearchUsername(""); // reset so the same username can be retried
-    }
-  }, [searchResult, isFetching, isError, searchUsername, dispatch, navigate]);
 
   return (
     <div
