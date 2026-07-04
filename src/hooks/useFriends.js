@@ -1,34 +1,24 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '../queryKeys.js'
 import * as friendsApi from '../api/friends.api.js'
+import axios from 'axios'
 
-/**
- * hooks/useFriends.js  — Owner: C
- *
- * NOTE: useFriends(userId) is the contract hook that usePosts.js (B) imports
- * for building the Home Feed. Publish the stub early on D1 even if the full
- * Friends page UI isn't done yet — B needs the shape.
- *
- * Expected shape of each item in the returned array:
- *   { friendId, username, ...anyOtherUserFields }
- */
 
-/**
- * Fetch friends list for a user.
- * Usage: const { data: friends } = useFriends(userId)
- */
+const api = axios.create({ baseURL: 'http://localhost:3000' })
+
 export function useFriends(userId) {
   return useQuery({
     queryKey: queryKeys.friends.list(userId),
-    queryFn:  () => friendsApi.getFriends(userId),
-    enabled:  !!userId,
+    queryFn: async () => {
+      if (!userId) return []
+      // Query the dynamic relationships route
+      const response = await api.get(`/Users/${userId}/friends`)
+      return response.data?.data || response.data || []
+    },
+    enabled: !!userId,
   })
 }
 
-/**
- * Fetch pending friend requests.
- * Usage: const { data: pending } = usePendingRequests(userId)
- */
 export function usePendingRequests(userId) {
   return useQuery({
     queryKey: queryKeys.friends.pending(userId),
@@ -37,12 +27,6 @@ export function usePendingRequests(userId) {
   })
 }
 
-/**
- * Send a friend request.
- * Usage:
- *   const { mutate: send } = useSendFriendRequest()
- *   send({ userId, friendId })
- */
 export function useSendFriendRequest() {
   const queryClient = useQueryClient()
   return useMutation({
@@ -53,12 +37,7 @@ export function useSendFriendRequest() {
   })
 }
 
-/**
- * Add a friend (accept request / direct add).
- * Usage:
- *   const { mutate: add } = useAddFriend()
- *   add({ userId, friendId })
- */
+
 export function useAddFriend() {
   const queryClient = useQueryClient()
   return useMutation({
