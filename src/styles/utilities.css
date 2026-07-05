@@ -1,32 +1,24 @@
-.page-container{
+.page-container {
+  max-width: 900px;
 
-    max-width:900px;
+  margin: auto;
 
-    margin:auto;
-
-    padding:30px 16px;
-
+  padding: 30px 16px;
 }
-.feed-container{
+.feed-container {
+  max-width: 760px;
 
-    max-width:760px;
-
-    margin:auto;
-
+  margin: auto;
 }
-.section-title{
+.section-title {
+  font-size: 30px;
 
-font-size:30px;
+  font-weight: 700;
 
-font-weight:700;
-
-margin-bottom:8px;
-
+  margin-bottom: 8px;
 }
-.section-subtitle{
+.section-subtitle {
+  color: var(--text-secondary);
 
-color:var(--text-secondary);
-
-margin-bottom:30px;
-
+  margin-bottom: 30px;
 }
