@@ -1,21 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { selectCurrentUser } from '../store/index.js';
-import {
-  useFriends,
-  usePendingRequests,
-  useAddFriend,
-  useRemoveFriend,
-  useSendFriendRequest,
-} from '../hooks/useFriends.js';
+import { useFriends, usePendingRequests, useAddFriend, useRemoveFriend, useSendFriendRequest, useSentRequests, useCancelFriendRequest } from '../hooks/useFriends.js';
 import { useUserSearch } from '../hooks/useUsers.js';
 import Loader from '../components/common/Loader.jsx';
 import Avatar from '../components/common/Avatar.jsx';
 
 export default function FriendsPage() {
   const currentUser = useSelector(selectCurrentUser);
-  const userId = currentUser?.userId;
-
+  const userId = currentUser?.userId || currentUser?.userID || currentUser?.id; 
   const [activeTab, setActiveTab] = useState('friends');
 
   // ── Friends list ──────────────────────────────────────────────────────
@@ -32,6 +25,10 @@ export default function FriendsPage() {
     refetch: refetchPending,
   } = usePendingRequests(userId);
 
+  const { data: sentRequests = [] } = useSentRequests(userId);
+  const addFriendMutation = useAddFriend();
+  const cancelFriendMutation = useCancelFriendRequest();
+  
   // ── Mutations ────────────────────────────────────────────────────────
   const { mutate: addFriend, isPending: adding } = useAddFriend();
   const { mutate: removeFriend, isPending: removing } = useRemoveFriend();
@@ -62,20 +59,24 @@ export default function FriendsPage() {
 
   // ── Helper: Check friendship status ──────────────────────────────────
   const friendshipStatus = (targetUserId) => {
-    const targetNum = Number(targetUserId);
-    if (targetNum === Number(userId)) return 'self';
-
+    if (Number(targetUserId) === Number(userId))
+      return "self";
     const isFriend = friends.some(
-      (f) => Number(f.friendId) === targetNum
+      (f) => Number(f.friendId) === Number(targetUserId)
     );
-    if (isFriend) return 'friend';
-
-    const isPending = pending.some(
-      (p) => Number(p.friendId) === targetNum
+    if (isFriend)
+      return "friend";
+    const sent = sentRequests.some(
+      (r) => Number(r.userID2) === Number(targetUserId)
     );
-    if (isPending) return 'pending';
-
-    return 'none';
+    if (sent)
+      return "sent";
+    const received = pending.some(
+      (r) => Number(r.userID1) === Number(targetUserId)
+    );
+    if (received)
+      return "pending";
+    return "none";
   };
 
   // ── Handlers ──────────────────────────────────────────────────────────
@@ -86,6 +87,13 @@ export default function FriendsPage() {
         { onSuccess: () => refetchFriends() }
       );
     }
+  };
+
+  const handleCancelRequest = (friendId) => {
+    cancelFriendMutation.mutate({
+        userId,
+        friendId,
+    });
   };
 
   const handleAcceptRequest = (friendId) => {
@@ -138,7 +146,6 @@ export default function FriendsPage() {
   };
 
   const handleSendRequest = (friendId) => {
-    // Prevent duplicate requests
     const status = friendshipStatus(friendId);
     if (status !== 'none') return;
 
@@ -165,77 +172,135 @@ export default function FriendsPage() {
     );
   };
 
-  // ── Check if a user is being processed ──────────────────────────────
   const isProcessing = (friendId) => processingUsers.has(friendId);
 
   // ── Render helpers ────────────────────────────────────────────────────
   const renderFriendsTab = () => (
     <div>
-      <h6 className="mb-3">My Friends ({friends.length})</h6>
+      <div className="d-flex align-items-center gap-2 mb-3">
+        <i className="bi bi-people-fill text-primary fs-4"></i>
+        <h6 className="mb-0 fw-bold">My Friends</h6>
+        <span className="badge bg-primary rounded-pill ms-auto">{friends.length}</span>
+      </div>
+
       {loadingFriends ? (
         <Loader size="sm" />
       ) : friends.length === 0 ? (
-        <p className="text-muted">You have no friends yet.</p>
+        <div className="text-center py-5">
+          <i className="bi bi-people text-muted" style={{ fontSize: '3rem' }}></i>
+          <p className="text-muted mt-3">You haven't added any friends yet.</p>
+        </div>
       ) : (
-        friends.map((f) => (
-          <div
-            key={f.friendshipId || f.friendId}
-            className="d-flex align-items-center gap-2 card card-body mb-2"
-          >
-            <Avatar username={f.username} size={36} />
-            <span className="flex-grow-1 fw-semibold">{f.username}</span>
-            <button
-              className="btn btn-outline-danger btn-sm"
-              disabled={removing || isProcessing(f.friendId)}
-              onClick={() => handleRemoveFriend(f.friendId)}
-            >
-              {isProcessing(f.friendId) ? 'Removing...' : 'Remove'}
-            </button>
-          </div>
-        ))
+        <div className="d-flex flex-column gap-2">
+          {friends.map((f, index) => {
+            // Aggressive fallback parsing sequence
+            const resolvedName = 
+              f.username || 
+              f.user?.username || 
+              f.friend?.username || 
+              f.friendId?.username ||
+              f.user2?.username ||
+              f.user1?.username ||
+              f.receiver?.username ||
+              f.sender?.username ||
+              (f.friendId ? `User #${f.friendId}` : `User #${index + 1}`);
+            
+            return (
+              <div
+                key={f.friendshipId || `${f.friendId}-${index}`}
+                className="d-flex align-items-center gap-3 p-3 bg-white border rounded-3 shadow-sm"
+              >
+                <Avatar username={resolvedName} size={44} />
+                <span className="flex-grow-1 fw-semibold text-dark">{resolvedName}</span>
+                <button
+                  className="btn btn-outline-danger btn-sm d-flex align-items-center gap-1"
+                  disabled={removing || isProcessing(f.friendId)}
+                  onClick={() => handleRemoveFriend(f.friendId)}
+                >
+                  {isProcessing(f.friendId) ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm" role="status"></span>
+                      <span>Removing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <i className="bi bi-person-dash"></i>
+                      <span>Remove</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            );
+          })}
+        </div>
       )}
     </div>
   );
 
   const renderPendingTab = () => (
     <div>
-      <h6 className="mb-3">Pending Requests ({pending.length})</h6>
+      <div className="d-flex align-items-center gap-2 mb-3">
+        <i className="bi bi-clock-history text-warning fs-4"></i>
+        <h6 className="mb-0 fw-bold">Pending Requests</h6>
+        <span className="badge bg-warning text-dark rounded-pill ms-auto">{pending.length}</span>
+      </div>
+
       {loadingPending ? (
         <Loader size="sm" />
       ) : pending.length === 0 ? (
-        <p className="text-muted">No pending requests.</p>
+        <div className="text-center py-5">
+          <i className="bi bi-check-circle text-success" style={{ fontSize: '3rem' }}></i>
+          <p className="text-muted mt-3">All clear – no pending requests.</p>
+        </div>
       ) : (
-        pending.map((req) => (
-          <div
-            key={req.friendshipId || req.friendId}
-            className="d-flex align-items-center gap-2 card card-body mb-2"
-          >
-            <Avatar username={req.username} size={36} />
-            <span className="flex-grow-1 fw-semibold">{req.username}</span>
-            <button
-              className="btn btn-success btn-sm"
-              disabled={adding || isProcessing(req.friendId)}
-              onClick={() => handleAcceptRequest(req.friendId)}
-            >
-              {isProcessing(req.friendId) ? 'Accepting...' : 'Accept'}
-            </button>
-            <button
-              className="btn btn-outline-secondary btn-sm"
-              disabled={removing || isProcessing(req.friendId)}
-              onClick={() => handleDeclineRequest(req.friendId)}
-            >
-              {isProcessing(req.friendId) ? 'Declining...' : 'Decline'}
-            </button>
-          </div>
-        ))
+        <div className="d-flex flex-column gap-2">
+          {pending.map((req, index) => {
+            const pendingName = 
+              req.username || 
+              req.user?.username || 
+              req.sender?.username || 
+              req.user1?.username || 
+              `User #${req.friendId || index}`;
+            
+            return (
+              <div
+                key={req.friendshipId || `${req.friendId}-${index}`}
+                className="d-flex align-items-center gap-3 p-3 bg-white border rounded-3 shadow-sm"
+              >
+                <Avatar username={pendingName} size={44} />
+                <span className="flex-grow-1 fw-semibold text-dark">{pendingName}</span>
+                <div className="d-flex gap-2">
+                  <button
+                    className="btn btn-success btn-sm d-flex align-items-center gap-1"
+                    disabled={adding || isProcessing(req.friendId)}
+                    onClick={() => handleAcceptRequest(req.friendId)}
+                  >
+                    <i className="bi bi-check-lg"></i> Accept
+                  </button>
+                  <button
+                    className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1"
+                    disabled={removing || isProcessing(req.friendId)}
+                    onClick={() => handleDeclineRequest(req.friendId)}
+                  >
+                    <i className="bi bi-x-lg"></i> Decline
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       )}
     </div>
   );
 
   const renderSearchTab = () => (
     <div>
-      <h6 className="mb-3">Find People</h6>
-      <div className="mb-3">
+      <div className="d-flex align-items-center gap-2 mb-3">
+        <i className="bi bi-search text-primary fs-4"></i>
+        <h6 className="mb-0 fw-bold">Find People</h6>
+      </div>
+
+      <div className="mb-4">
         <input
           type="text"
           className="form-control"
@@ -246,53 +311,38 @@ export default function FriendsPage() {
       </div>
 
       {searching && <Loader size="sm" />}
-      {searchError && (
-        <p className="text-danger">Something went wrong with the search.</p>
-      )}
-
-      {!searching && debouncedQuery && searchResults.length === 0 && (
-        <p className="text-muted">No users found.</p>
-      )}
-
+      
       {!searching &&
         searchResults.map((u) => {
           const uid = getUserId(u);
           if (!uid) return null;
-
           const status = friendshipStatus(uid);
           const processing = isProcessing(uid);
-
           let actionButton = null;
 
-          if (status === 'self') {
-            actionButton = <span className="badge bg-secondary">You</span>;
-          } else if (status === 'friend') {
-            actionButton = <span className="badge bg-success">Friend</span>;
-          } else if (status === 'pending') {
+          if (status === 'self') actionButton = <span className="badge bg-secondary">You</span>;
+          else if (status === 'friend') actionButton = <span className="badge bg-success">Friend</span>;
+          else if (status === 'sent') {
             actionButton = (
-              <span className="badge bg-warning text-dark">
-                {processing ? 'Sending...' : 'Pending'}
-              </span>
+              <button className="btn btn-warning btn-sm" disabled={processing} onClick={() => handleCancelRequest(uid)}>
+                Cancel Request
+              </button>
             );
+          } else if (status === 'pending') {
+            actionButton = <span className="badge bg-warning text-dark">Pending</span>;
           } else {
             actionButton = (
-              <button
-                className="btn btn-primary btn-sm"
-                disabled={sending || processing}
-                onClick={() => handleSendRequest(uid)}
-              >
-                {processing ? 'Adding...' : 'Add Friend'}
+              <button className="btn btn-primary btn-sm" disabled={processing} onClick={() => handleSendRequest(uid)}>
+                Add Friend
               </button>
             );
           }
 
+          const searchUserName = u.username || `User #${uid}`;
           return (
-            <div
-              key={uid}
-              className="d-flex align-items-center gap-2 card card-body mb-2"
-            >
-              <Avatar username={u.username} size={36} />
-              <span className="flex-grow-1 fw-semibold">{u.username}</span>
+            <div key={uid} className="d-flex align-items-center gap-3 p-3 bg-white border rounded-3 mb-2">
+              <Avatar username={searchUserName} size={44} />
+              <span className="flex-grow-1 fw-semibold text-dark">{searchUserName}</span>
               {actionButton}
             </div>
           );
@@ -300,53 +350,24 @@ export default function FriendsPage() {
     </div>
   );
 
-  // ── Main render ──────────────────────────────────────────────────────
   return (
-    <div>
-      <h5 className="mb-3">Friends</h5>
-
-      <ul className="nav nav-tabs mb-4">
-        <li className="nav-item">
-          <button
-            className={`nav-link border-0 ${
-              activeTab === 'friends'
-                ? 'active fw-bold border-bottom border-primary border-3'
-                : 'text-muted'
-            }`}
-            onClick={() => setActiveTab('friends')}
-          >
-            Friends ({friends.length})
-          </button>
-        </li>
-        <li className="nav-item">
-          <button
-            className={`nav-link border-0 ${
-              activeTab === 'pending'
-                ? 'active fw-bold border-bottom border-primary border-3'
-                : 'text-muted'
-            }`}
-            onClick={() => setActiveTab('pending')}
-          >
-            Pending ({pending.length})
-          </button>
-        </li>
-        <li className="nav-item">
-          <button
-            className={`nav-link border-0 ${
-              activeTab === 'search'
-                ? 'active fw-bold border-bottom border-primary border-3'
-                : 'text-muted'
-            }`}
-            onClick={() => setActiveTab('search')}
-          >
-            Find People
-          </button>
-        </li>
+    <div className="friends-page p-3">
+      <ul className="nav nav-pills mb-4 gap-2">
+        <button className={`nav-link ${activeTab === 'friends' ? 'active' : 'bg-light'}`} onClick={() => setActiveTab('friends')}>
+          Friends ({friends.length})
+        </button>
+        <button className={`nav-link ${activeTab === 'pending' ? 'active' : 'bg-light'}`} onClick={() => setActiveTab('pending')}>
+          Pending ({pending.length})
+        </button>
+        <button className={`nav-link ${activeTab === 'search' ? 'active' : 'bg-light'}`} onClick={() => setActiveTab('search')}>
+          Find People
+        </button>
       </ul>
-
-      {activeTab === 'friends' && renderFriendsTab()}
-      {activeTab === 'pending' && renderPendingTab()}
-      {activeTab === 'search' && renderSearchTab()}
+      <div className="tab-content">
+        {activeTab === 'friends' && renderFriendsTab()}
+        {activeTab === 'pending' && renderPendingTab()}
+        {activeTab === 'search' && renderSearchTab()}
+      </div>
     </div>
   );
 }

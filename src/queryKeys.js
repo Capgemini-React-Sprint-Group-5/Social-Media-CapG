@@ -1,16 +1,3 @@
-/**
- * queryKeys.js
- * Single source of truth for all TanStack Query cache keys.
- *
- * RULE: Never write a raw array in useQuery/useMutation — always reference this.
- * This makes invalidation predictable and prevents key typos causing stale data.
- *
- * Pattern:
- *   queryKeys.posts.all          → ['posts']          (invalidates everything under posts)
- *   queryKeys.posts.byId(1)      → ['posts', 1]       (single post)
- *   queryKeys.posts.byUser(5)    → ['posts', 'user', 5]
- */
-
 export const queryKeys = {
   // ── Users ─────────────────────────────────────────────────────────────────
   users: {
@@ -46,6 +33,7 @@ export const queryKeys = {
   friends: {
     list:    (userId) => ['friends', userId],
     pending: (userId) => ['friends', 'pending', userId],
+    sent: (userId) => ['friends', 'sent', userId],
   },
 
   // ── Messages ──────────────────────────────────────────────────────────────

@@ -2,135 +2,131 @@ import { useQuery, useQueries, useMutation, useQueryClient } from '@tanstack/rea
 import { useSelector } from 'react-redux'
 import { selectCurrentUser } from '../store/index.js'
 import { queryKeys } from '../queryKeys.js'
-import * as postsApi from '../api/posts.api.js'
-import * as usersApi from '../api/users.api.js'
-import * as friendsApi from '../api/friends.api.js'
+import axios from 'axios'
 
-/**
- * hooks/usePosts.js  — Owner: B
- */
+const api = axios.create({
+  baseURL: 'http://localhost:3000',
+  headers: { 'Content-Type': 'application/json' }
+})
 
-// ── FULLY WORKED EXAMPLE ──────────────────────────────────────────────────
-
-/**
- * Fetch all posts for a given user.
- * Usage: const { data: posts } = useUserPosts(userId)
- */
-export function useUserPosts(userId) {
-  return useQuery({
-    queryKey: queryKeys.posts.byUser(userId),
-    queryFn:  () => usersApi.getUserPosts(userId),
-    enabled:  !!userId,
-  })
+async function hydratePostWithUser(postItem) {
+  if (!postItem) return null
+  const targetUserId = postItem.userID
+  try {
+    const userResponse = await api.get(`/Users/${targetUserId}`)
+    return {
+      ...postItem,
+      user: userResponse.data?.data || userResponse.data
+    }
+  } catch (err) {
+    return {
+      ...postItem,
+      user: { username: `User #${targetUserId}`, profile_picture: "profile1.jpg" }
+    }
+  }
 }
 
-// ── KEY HOOK — Home Feed (no /api/posts endpoint exists) ──────────────────
-
-/**
- * Home feed: fetch friends list, then fetch each friend's posts in parallel,
- * merge and sort newest-first.
- *
- * This is the one place we do N+1 intentionally — the API gives us no choice.
- * useQueries fires all friend-post requests in parallel so it's one round-trip
- * per friend, not serial.
- *
- * Usage: const { posts, isLoading } = useFriendsFeed()
- */
 export function useFriendsFeed() {
   const currentUser = useSelector(selectCurrentUser)
-  const userId = currentUser?.userId
+  const userId = currentUser?.userID || currentUser?.userId || currentUser?.id
 
-  // Step 1 — get the friends list
   const friendsQuery = useQuery({
     queryKey: queryKeys.friends.list(userId),
-    queryFn:  () => friendsApi.getFriends(userId),
-    enabled:  !!userId,
+    queryFn: async () => {
+      const response = await api.get(`/Users/${userId}/friends`)
+      return response.data?.data || []
+    },
+    enabled: !!userId,
   })
 
-  const friends = friendsQuery.data || []
+  const acceptedFriends = (friendsQuery.data || []).filter((f) => f.status === 'accepted')
 
-  // Step 2 — fire one query per friend in parallel
+  const currentUserPostsQuery = useQuery({
+    queryKey: queryKeys.posts.byUser(userId),
+    queryFn: async () => {
+      const response = await api.get(`/Users/${userId}/posts`)
+      const rawPosts = response.data?.data || []
+      return await Promise.all(rawPosts.map(hydratePostWithUser))
+    },
+    enabled: !!userId,
+  })
+
   const postQueries = useQueries({
-    queries: friends.map((friend) => ({
-      queryKey: queryKeys.posts.byUser(friend.friendId || friend.userId),
-      queryFn:  () => usersApi.getUserPosts(friend.friendId || friend.userId),
-      enabled:  !!friend,
-    })),
+    queries: acceptedFriends.map((friend) => {
+      const targetFriendId = friend.friendId
+      return {
+        queryKey: queryKeys.posts.byUser(targetFriendId),
+        queryFn: async () => {
+          const response = await api.get(`/Users/${targetFriendId}/posts`)
+          const rawPosts = response.data?.data || []
+          return await Promise.all(rawPosts.map(hydratePostWithUser))
+        },
+        enabled: !!targetFriendId,
+      }
+    }),
   })
 
-  // Step 3 — merge and sort
-  const posts = postQueries
-    .flatMap((q) => q.data || [])
-    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+  const myPosts = currentUserPostsQuery.data || []
+  const friendsPosts = postQueries.flatMap((q) => q.data || [])
 
-  const isLoading = friendsQuery.isLoading || postQueries.some((q) => q.isLoading)
-  const isError   = friendsQuery.isError   || postQueries.some((q) => q.isError)
+  const posts = [...myPosts, ...friendsPosts]
+    .filter(Boolean)
+    .sort((a, b) => {
+      const timeA = a.timestamp === 'NOW()' ? Date.now() : new Date(a.timestamp).getTime()
+      const timeB = b.timestamp === 'NOW()' ? Date.now() : new Date(b.timestamp).getTime()
+      return timeB - timeA
+    })
+
+  const isLoading = friendsQuery.isLoading || currentUserPostsQuery.isLoading || postQueries.some((q) => q.isLoading)
+  const isError = friendsQuery.isError || currentUserPostsQuery.isError || postQueries.some((q) => q.isError)
 
   return { posts, isLoading, isError }
 }
 
-// ── STUBS ─────────────────────────────────────────────────────────────────
-
-/**
- * Fetch a single post by ID.
- * Usage: const { data: post } = usePost(postId)
- */
-export function usePost(postId) {
-  return useQuery({
-    queryKey: queryKeys.posts.byId(postId),
-    queryFn:  () => postsApi.getPostById(postId),
-    enabled:  !!postId,
-  })
-}
-
-/**
- * Create a post.
- * Usage:
- *   const { mutate: create } = useCreatePost()
- *   create({ userId, content })
- */
 export function useCreatePost() {
-  const queryClient   = useQueryClient()
-  const currentUser   = useSelector(selectCurrentUser)
+  const queryClient = useQueryClient()
+  const currentUser = useSelector(selectCurrentUser)
+  const userId = currentUser?.userID || currentUser?.userId || currentUser?.id
+
   return useMutation({
-    mutationFn: postsApi.createPost,
+    
+    mutationFn: async ({ content }) => {
+      const response = await api.post('/Post', {
+        userID: String(userId),
+        content: content,
+        timestamp: new Date().toISOString()
+      })
+      return response.data
+    },
     onSuccess: () => {
-      // Invalidate the current user's posts and the feed
-      queryClient.invalidateQueries({ queryKey: queryKeys.posts.byUser(currentUser?.userId) })
-      queryClient.invalidateQueries({ queryKey: queryKeys.posts.feed(currentUser?.userId) })
+      // Clear cache arrays completely to instantly force a timeline reload
+      queryClient.invalidateQueries({ queryKey: ['posts'] })
     },
   })
 }
 
-/**
- * Update a post.
- * Usage:
- *   const { mutate: update } = useUpdatePost()
- *   update({ postId, postData: { content } })
- */
 export function useUpdatePost() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ postId, postData }) => postsApi.updatePost(postId, postData),
-    onSuccess: (_, { postId }) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.posts.byId(postId) })
+    mutationFn: async ({ postId, content }) => {
+      const response = await api.put(`/Post/update/${postId}`, { content })
+      return response.data
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['posts'] })
+    }
   })
 }
 
-/**
- * Delete a post.
- * Usage:
- *   const { mutate: remove } = useDeletePost()
- *   remove({ postId, userId })  — userId needed to invalidate user's post list
- */
 export function useDeletePost() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ postId }) => postsApi.deletePost(postId),
-    onSuccess: (_, { postId, userId }) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.posts.byId(postId) })
-      queryClient.invalidateQueries({ queryKey: queryKeys.posts.byUser(userId) })
+    mutationFn: async (postId) => {
+      const response = await api.delete(`/Post/delete/${postId}`)
+      return response.data
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['posts'] })
+    }
   })
 }
