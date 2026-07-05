@@ -22,13 +22,6 @@ export default function ProfilePage() {
   const isOwnProfile = currentUser?.userId === userId;
   const [activeTab, setActiveTab] = useState("posts");
   const [editOpen, setEditOpen] = useState(false);
-  console.log(
-    "ProfilePage: userId=",
-    userId,
-    currentUser,
-    "isOwnProfile=",
-    isOwnProfile,
-  );
 
   const [userQuery, postsQuery, friendsQuery, likesQuery] = useQueries({
     queries: [
