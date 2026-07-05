@@ -3,25 +3,31 @@ import { getAllUsers } from "./users.api.js";
 
 // GET /Users/:userId/friends (accepted only, enriched with user info)
 export const getFriends = async (userId) => {
-  const [friends, users] = await Promise.all([
-    (await client.get(`/Users/${userId}/friends`)).data,
+  const [friendsData, usersData] = await Promise.all([
+    client.get(`/Users/${userId}/friends`),
     getAllUsers(),
   ]);
+
+  // Handle nested object response setups safely
+  const friends = friendsData?.data || friendsData || [];
+  const users = usersData?.data || usersData || [];
 
   return friends
     .filter((f) => f.status === "accepted")
     .map((f) => {
-      const u = users.find((u) => String(u.userID) === String(f.friendId));
+      // Look for the user matching either friendId or direct user links
+      const targetId = f.friendId || f.userID2 || f.userID1;
+      const u = users.find((u) => String(u.userID || u.id || u.userId) === String(targetId));
+      
       return {
-        friendshipId: f.friendshipID,
-        friendId: f.friendId,
-        username: u?.username,
-        email: u?.email,
-        profile_picture: u?.profile_picture,
+        friendshipId: f.friendshipID || f.id,
+        friendId: targetId,
+        username: u?.username || f.username || `User #${targetId}`,
+        email: u?.email || "",
+        profile_picture: u?.profile_picture || "",
       };
     });
 };
-
 // GET /Users/:userId/friend-requests/pending (requests received)
 export const getPendingRequests = async (userId) => {
   const [pending, users] = await Promise.all([
