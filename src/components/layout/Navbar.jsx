@@ -13,7 +13,7 @@ export default function Navbar() {
   const userId   = user?.userId
 
   const { data: notifications = [] } = useNotifications(userId)
-  const unreadCount = notifications.length
+  const unreadCount = notifications.filter((n) => !n.read).length
 
   const handleLogout = () => {
     dispatch(clearUser())
