@@ -13,9 +13,7 @@ export default function MessagesPage() {
   const dispatch = useDispatch();
   const currentUser = useSelector(selectCurrentUser);
   const activeId = useSelector(selectActiveThread) || routeUserId;
-  
-  // ✅ FIX 1: Normalize identity extraction against property discrepancies
-  const userId = currentUser?.userId || currentUser?.userID || currentUser?.id;
+  const userId = currentUser?.userId;
   const [text, setText] = useState('');
   const messagesEndRef = useRef(null);
 
@@ -179,27 +177,21 @@ export default function MessagesPage() {
         ) : friends?.length === 0 ? (
           <p className="text-muted small">No friends to chat with.</p>
         ) : (
-          friends?.map((f, index) => {
-            // ✅ FIX 2: Aggressive user profile lookup string fallbacks
-            const friendSidebarName = f.username || f.user?.username || f.friend?.username || `User #${f.friendId || index}`;
-            
-            return (
-              <div
-                // ✅ FIX 3: Solves the duplicate key warning explicitly
-                key={f.friendshipId || `${f.friendId}-${index}`}
-                className={`d-flex align-items-center gap-2 p-2 rounded-3 mb-1 cursor-pointer transition ${
-                  Number(activeId) === Number(f.friendId)
-                    ? 'bg-primary text-white'
-                    : 'hover-bg-light'
-                }`}
-                style={{ cursor: 'pointer', transition: 'background 0.15s' }}
-                onClick={() => dispatch(setActiveThread(f.friendId))}
-              >
-                <Avatar username={friendSidebarName} size={32} />
-                <span className="text-truncate fw-semibold">{friendSidebarName}</span>
-              </div>
-            );
-          })
+          friends?.map((f) => (
+            <div
+              key={f.friendId}
+              className={`d-flex align-items-center gap-2 p-2 rounded-3 mb-1 cursor-pointer transition ${
+                Number(activeId) === Number(f.friendId)
+                  ? 'bg-primary text-white'
+                  : 'hover-bg-light'
+              }`}
+              style={{ cursor: 'pointer', transition: 'background 0.15s' }}
+              onClick={() => dispatch(setActiveThread(f.friendId))}
+            >
+              <Avatar username={f.username} size={32} />
+              <span className="text-truncate fw-semibold">{f.username}</span>
+            </div>
+          ))
         )}
       </div>
 
@@ -209,22 +201,13 @@ export default function MessagesPage() {
         {activeId && (
           <div className="p-3 border-bottom bg-light rounded-top-3">
             <div className="d-flex align-items-center gap-2">
-              {(() => {
-                const activeFriend = friends?.find((f) => Number(f.friendId) === Number(activeId));
-                // ✅ FIX 4: Aggressive partner extraction for instant mounting header resolution
-                const displayName = 
-                  activeFriend?.username || 
-                  activeFriend?.user?.username || 
-                  activeFriend?.friend?.username || 
-                  `User #${activeId}`;
-                  
-                return (
-                  <>
-                    <Avatar username={displayName} size={32} />
-                    <span className="fw-bold">{displayName}</span>
-                  </>
-                );
-              })()}
+              <Avatar
+                username={friends?.find((f) => Number(f.friendId) === Number(activeId))?.username}
+                size={32}
+              />
+              <span className="fw-bold">
+                {friends?.find((f) => Number(f.friendId) === Number(activeId))?.username || 'User'}
+              </span>
             </div>
           </div>
         )}
@@ -244,11 +227,11 @@ export default function MessagesPage() {
               <p className="mt-2">No messages yet. Say hello!</p>
             </div>
           )}
-          {messages?.map((m, idx) => (
+          {messages?.map((m) => (
             <MessageBubble
-              key={m.messageID || m.id || idx}
+              key={m.messageID}
               message={m}
-              isOwn={Number(m.senderID || m.senderId) === Number(userId)}
+              isOwn={Number(m.senderID) === Number(userId)}
             />
           ))}
           <div ref={messagesEndRef} />

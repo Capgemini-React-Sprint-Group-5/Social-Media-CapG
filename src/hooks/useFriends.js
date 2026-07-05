@@ -6,7 +6,9 @@ export function useFriends(userId) {
   return useQuery({
     queryKey: queryKeys.friends.list(userId),
     queryFn:  () => friendsApi.getFriends(userId),
-    enabled:  !!userId,
+    enabled:  Boolean(userId),
+    staleTime: 0,
+    refetchOnMount: 'always',
   })
 }
 

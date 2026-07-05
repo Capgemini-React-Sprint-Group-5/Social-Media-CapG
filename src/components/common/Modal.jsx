@@ -1,12 +1,3 @@
-/**
- * Modal
- * Controlled Bootstrap modal (no JS dependency — pure CSS class toggle).
- * Usage:
- *   const [open, setOpen] = useState(false)
- *   <Modal isOpen={open} onClose={() => setOpen(false)} title="Confirm">
- *     <p>Are you sure?</p>
- *   </Modal>
- */
 export default function Modal({ isOpen, onClose, title, children }) {
   if (!isOpen) return null
 
