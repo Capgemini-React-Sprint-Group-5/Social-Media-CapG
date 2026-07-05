@@ -4,13 +4,15 @@ import { selectCurrentUser } from '../../store/index.js'
 import { clearUser } from '../../store/slices/authSlice.js'
 import { useNotifications } from '../../hooks/useNotifications.js'
 import Avatar from '../common/Avatar.jsx'
+import { selectCurrentUserId } from '../../store/index.js'
 
 export default function Navbar() {
   const dispatch = useDispatch()
   const navigate = useNavigate()
   const location = useLocation()
-  const user     = useSelector(selectCurrentUser)
-  const userId   = user?.userId
+  
+  const user = useSelector(selectCurrentUser)
+  const userId = useSelector(selectCurrentUserId)
 
   const { data: notifications = [] } = useNotifications(userId)
   const unreadCount = notifications.length
