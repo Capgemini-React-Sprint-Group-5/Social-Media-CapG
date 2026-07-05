@@ -1,67 +1,76 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '../queryKeys.js'
-import * as commentsApi from '../api/comments.api.js'
+import axios from 'axios'
 
-/**
- * hooks/useComments.js  — Owner: B
- */
+const api = axios.create({
+  baseURL: 'http://localhost:3000',
+  headers: { 'Content-Type': 'application/json' }
+})
 
-/**
- * Fetch all comments for a post.
- * Usage: const { data: comments } = usePostComments(postId)
- */
-export function usePostComments(postId) {
-  return useQuery({
-    queryKey: queryKeys.comments.byPost(postId),
-    queryFn:  () => commentsApi.getCommentsByPost(postId),
-    enabled:  !!postId,
-  })
+async function hydrateCommentWithUser(commentItem) {
+  if (!commentItem) return null
+  const targetUserId = commentItem.userID || commentItem.userId
+  try {
+    const userResponse = await api.get(`/Users/${targetUserId}`)
+    return {
+      ...commentItem,
+      user: userResponse.data?.data || userResponse.data
+    }
+  } catch (err) {
+    return {
+      ...commentItem,
+      user: { username: `User #${targetUserId}`, profile_picture: "profile1.jpg" }
+    }
+  }
 }
 
-/**
- * Add a comment to a post.
- * Usage:
- *   const { mutate: addComment } = useAddComment()
- *   addComment({ postId, commentData: { userId, comment_text } })
- */
-export function useAddComment() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: ({ commentData }) => commentsApi.createComment(commentData),
-    onSuccess: (_, { postId }) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.comments.byPost(postId) })
-    },
-  })
-}
 
-/**
- * Update a comment.
- * Usage:
- *   const { mutate: edit } = useUpdateComment()
- *   edit({ commentId, commentData: { comment_text }, postId })
- */
-export function useUpdateComment() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: ({ commentId, commentData }) => commentsApi.updateComment(commentId, commentData),
-    onSuccess: (_, { postId }) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.comments.byPost(postId) })
-    },
-  })
-}
 
-/**
- * Delete a comment from a post.
- * Usage:
- *   const { mutate: remove } = useDeleteComment()
- *   remove({ postId, commentId })
- */
 export function useDeleteComment() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ commentId }) => commentsApi.deleteComment(commentId),
-    onSuccess: (_, { postId }) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.comments.byPost(postId) })
+    mutationFn: async (commentId) => {
+      const response = await api.delete(`/Comments/${commentId}`)
+      return response.data
+    },
+    onSuccess: () => {
+      // Refreshes the comment array cache and any post counters
+      queryClient.invalidateQueries({ queryKey: ['comments'] })
+      queryClient.invalidateQueries({ queryKey: ['posts'] })
+    }
+  })
+}
+
+export function usePostComments(postId) {
+  return useQuery({
+    queryKey: queryKeys.comments.byPost(postId),
+    queryFn: async () => {
+      if (!postId) return []
+      
+      const response = await api.get(`/Posts/${postId}/comments`)
+      const rawComments = response.data?.data || response.data || []
+      const hydrated = await Promise.all(rawComments.map(hydrateCommentWithUser))
+      return hydrated.filter(Boolean)
+    },
+    enabled: !!postId,
+  })
+}
+
+export function useAddComment() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    
+    mutationFn: async ({ postId, userId, content }) => {
+      const response = await api.post(`/Posts/${postId}/comments`, {
+        userID: String(userId),
+        comment_text: content,
+        timestamp: new Date().toISOString()
+      })
+      return response.data
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.comments.byPost(variables.postId) })
+      queryClient.invalidateQueries({ queryKey: ['posts'] }) // Re-evaluate total metrics counts globally
     },
   })
 }

@@ -7,6 +7,7 @@ export const getFriends = async (userId) => {
     (await client.get(`/Users/${userId}/friends`)).data,
     getAllUsers(),
   ]);
+
   return friends
     .filter((f) => f.status === "accepted")
     .map((f) => {
@@ -27,6 +28,7 @@ export const getPendingRequests = async (userId) => {
     (await client.get(`/Users/${userId}/friend-requests/pending`)).data,
     getAllUsers(),
   ]);
+
   return pending
     .filter((f) => String(f.userID2) === String(userId))
     .map((f) => {
@@ -45,7 +47,7 @@ export const getPendingRequests = async (userId) => {
 export const sendFriendRequest = (userId, friendId) =>
   client.post(`/Users/${userId}/friend-requests/send/${friendId}`);
 
-// POST /Users/:userId/friends/:friendId (accepts a pending request, or adds directly)
+// POST /Users/:userId/friends/:friendId
 export const addFriend = (userId, friendId) =>
   client.post(`/Users/${userId}/friends/${friendId}`);
 
@@ -57,6 +59,14 @@ export const removeFriend = (userId, friendId) =>
 export const getFriendMessages = async (friendshipId) =>
   (await client.get(`/Friends/${friendshipId}/messages`)).data;
 
-// POST /Friends/:friendshipId/messages/send  — body: { senderID, message_text }
+// POST /Friends/:friendshipId/messages/send
 export const sendFriendMessage = (friendshipId, messageData) =>
   client.post(`/Friends/${friendshipId}/messages/send`, messageData);
+
+export const getSentRequests = async (userId) =>
+  (await client.get(`/Users/${userId}/friend-requests/sent`)).data;
+
+export const cancelFriendRequest = (userId, friendId) =>
+  client.delete(
+    `/Users/${userId}/friend-requests/cancel/${friendId}`
+  );

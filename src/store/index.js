@@ -1,11 +1,11 @@
 import { configureStore } from "@reduxjs/toolkit";
 import authReducer from "./slices/authSlice.js";
-// import uiReducer from './slices/uiSlice.js'
+import uiReducer from './slices/uiSlice.js'
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
-    // ui:   uiReducer,
+    ui:   uiReducer,
   },
 });
 
@@ -13,6 +13,11 @@ export const store = configureStore({
  * Typed selector helpers (optional but saves boilerplate in components):
  *   const user = useSelector(selectCurrentUser)
  */
+export const selectCurrentUserId = (state) => {
+  const user = state.auth.user;
+  if (!user) return null;
+  return user.userId || user.userID || user.id;
+};
 export const selectCurrentUser = (state) => state.auth.user;
 export const selectIsAuthenticated = (state) => state.auth.isAuthenticated;
 export const selectActiveThread = (state) => state.ui.activeThread;

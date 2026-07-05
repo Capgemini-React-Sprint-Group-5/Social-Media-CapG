@@ -1,76 +1,64 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '../queryKeys.js'
-import * as likesApi from '../api/likes.api.js'
-import * as usersApi from '../api/users.api.js'
+import axios from 'axios'
 
-/**
- * hooks/useLikes.js  — Owner: B
- */
+const api = axios.create({
+  baseURL: 'http://localhost:3000',
+  headers: { 'Content-Type': 'application/json' }
+})
 
-/**
- * Fetch all likes on a post.
- * Usage: const { data: likes } = usePostLikes(postId)
- */
+
 export function usePostLikes(postId) {
   return useQuery({
     queryKey: queryKeys.likes.byPost(postId),
-    queryFn:  () => likesApi.getLikesByPost(postId),
-    enabled:  !!postId,
+    queryFn: async () => {
+      const response = await api.get(`/Posts/${postId}/likes`)
+      return response.data?.data || []
+    },
+    enabled: !!postId,
   })
 }
 
-/**
- * Fetch all likes a user has given.
- * Usage: const { data: likes } = useGivenLikes(userId)
- */
+
 export function useGivenLikes(userId) {
   return useQuery({
     queryKey: queryKeys.likes.givenByUser(userId),
-    queryFn:  () => usersApi.getUserGivenLikes(userId),
-    enabled:  !!userId,
-  })
-}
-
-/**
- * Fetch all likes received on a user's posts.
- * Usage: const { data: likes } = useReceivedLikes(userId)
- */
-export function useReceivedLikes(userId) {
-  return useQuery({
-    queryKey: queryKeys.likes.receivedByUser(userId),
-    queryFn:  () => usersApi.getUserPostLikes(userId),
-    enabled:  !!userId,
-  })
-}
-
-/**
- * Like a post.
- * Usage:
- *   const { mutate: like } = useAddLike()
- *   like({ postId, userId })
- */
-export function useAddLike() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: ({ postId, userId }) => likesApi.addLike(postId, userId),
-    onSuccess: (_, { postId }) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.likes.byPost(postId) })
+    queryFn: async () => {
+      const response = await api.get(`/Users/${userId}/likes`)
+      return response.data?.data || []
     },
+    enabled: !!userId,
   })
 }
 
-/**
- * Remove a like from a post.
- * Usage:
- *   const { mutate: unlike } = useRemoveLike()
- *   unlike({ postId, likeId })
- */
-export function useRemoveLike() {
-  const queryClient = useQueryClient()
+
+export function useAddLike() {
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ likeId }) => likesApi.removeLike(likeId),
-    onSuccess: (_, { postId }) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.likes.byPost(postId) })
+    // FIXED: Formats the exact path parameter endpoint required by posts.routes.js
+    mutationFn: async ({ postId, userId }) => {
+      const response = await api.post(`/Posts/${postId}/likes/add/${userId}`)
+      return response.data
+    },
+    onSuccess: (_, variables) => {
+      // Invalidate the post-specific caches and the home feed timeline to update states instantly
+      queryClient.invalidateQueries({ queryKey: queryKeys.likes.byPost(variables.postId) })
+      queryClient.invalidateQueries({ queryKey: ['posts'] })
+    },
+  });
+}
+
+export function useRemoveLike() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    
+    mutationFn: async ({ postId, likeId }) => {
+      const response = await api.delete(`/Posts/${postId}/likes/remove/${likeId}`)
+      return response.data
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.likes.byPost(variables.postId) })
+      queryClient.invalidateQueries({ queryKey: ['posts'] })
     },
   })
 }

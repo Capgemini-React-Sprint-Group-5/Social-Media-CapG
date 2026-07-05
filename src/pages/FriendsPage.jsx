@@ -1,55 +1,481 @@
-import { useSelector } from 'react-redux'
-import { selectCurrentUser } from '../store/index.js'
-import { useFriends, usePendingRequests, useSendFriendRequest, useRemoveFriend } from '../hooks/useFriends.js'
-import Loader from '../components/common/Loader.jsx'
-import Avatar from '../components/common/Avatar.jsx'
+import { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
+import { selectCurrentUser } from '../store/index.js';
+import { useFriends, usePendingRequests, useAddFriend, useRemoveFriend, useSendFriendRequest, useSentRequests, useCancelFriendRequest } from '../hooks/useFriends.js';
+import { useUserSearch } from '../hooks/useUsers.js';
+import Loader from '../components/common/Loader.jsx';
+import Avatar from '../components/common/Avatar.jsx';
 
-/**
- * FriendsPage  — Owner: C
- * Tabs: Friends List | Pending Requests | Find Friends (Search)
- *
- * TODO (C):
- *  - Build tab UI
- *  - Accept/Decline pending request actions (useAddFriend / useRemoveFriend)
- *  - Redirect to /profile/:friendId on avatar click
- */
 export default function FriendsPage() {
-  const currentUser = useSelector(selectCurrentUser)
-  const userId      = currentUser?.userId
+  const currentUser = useSelector(selectCurrentUser);
+  const userId = currentUser?.userId;
+  const [activeTab, setActiveTab] = useState('friends');
 
-  const { data: friends,  isLoading: loadingFriends  } = useFriends(userId)
-  const { data: pending,  isLoading: loadingPending  } = usePendingRequests(userId)
-  const { mutate: remove, isPending: removing        } = useRemoveFriend()
+  // ── Friends list ──────────────────────────────────────────────────────
+  const {
+    data: friends = [],
+    isLoading: loadingFriends,
+    refetch: refetchFriends,
+  } = useFriends(userId);
 
-  if (loadingFriends || loadingPending) return <Loader />
+  // ── Pending requests ─────────────────────────────────────────────────
+  const {
+    data: pending = [],
+    isLoading: loadingPending,
+    refetch: refetchPending,
+  } = usePendingRequests(userId);
 
-  return (
+  const { data: sentRequests = [] } = useSentRequests(userId);
+  const addFriendMutation = useAddFriend();
+  const cancelFriendMutation = useCancelFriendRequest();
+  // ── Mutations ────────────────────────────────────────────────────────
+  const { mutate: addFriend, isPending: adding } = useAddFriend();
+  const { mutate: removeFriend, isPending: removing } = useRemoveFriend();
+  const { mutate: sendRequest, isPending: sending } = useSendFriendRequest();
+
+  // ── Track which users are currently being processed ──────────────────
+  const [processingUsers, setProcessingUsers] = useState(new Set());
+
+  // ── Search ────────────────────────────────────────────────────────────
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(searchQuery.trim());
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const {
+    data: searchResults = [],
+    isLoading: searching,
+    isError: searchError,
+  } = useUserSearch(debouncedQuery);
+
+  // ── Helper: Get user ID from any user object ──────────────────────────
+  const getUserId = (user) => user?.userID ?? user?.userId ?? user?.id;
+
+  // ── Helper: Check friendship status ──────────────────────────────────
+  const friendshipStatus = (targetUserId) => {
+    if (Number(targetUserId) === Number(userId))
+      return "self";
+    const isFriend = friends.some(
+      (f) => Number(f.friendId) === Number(targetUserId)
+    );
+    if (isFriend)
+      return "friend";
+    const sent = sentRequests.some(
+      (r) => Number(r.userID2) === Number(targetUserId)
+    );
+    if (sent)
+      return "sent";
+    const received = pending.some(
+      (r) => Number(r.userID1) === Number(targetUserId)
+    );
+    if (received)
+      return "pending";
+    return "none";
+  };
+
+  // ── Handlers ──────────────────────────────────────────────────────────
+  const handleRemoveFriend = (friendId) => {
+    if (window.confirm('Remove this friend?')) {
+      removeFriend(
+        { userId, friendId },
+        { onSuccess: () => refetchFriends() }
+      );
+    }
+  };
+
+  const handleCancelRequest = (friendId) => {
+    cancelFriendMutation.mutate({
+        userId,
+        friendId,
+    });
+  };
+
+  const handleAcceptRequest = (friendId) => {
+    setProcessingUsers(prev => new Set(prev).add(friendId));
+    addFriend(
+      { userId, friendId },
+      {
+        onSuccess: () => {
+          refetchFriends();
+          refetchPending();
+          setProcessingUsers(prev => {
+            const next = new Set(prev);
+            next.delete(friendId);
+            return next;
+          });
+        },
+        onError: () => {
+          setProcessingUsers(prev => {
+            const next = new Set(prev);
+            next.delete(friendId);
+            return next;
+          });
+        }
+      }
+    );
+  };
+
+  const handleDeclineRequest = (friendId) => {
+    setProcessingUsers(prev => new Set(prev).add(friendId));
+    removeFriend(
+      { userId, friendId },
+      {
+        onSuccess: () => {
+          refetchPending();
+          setProcessingUsers(prev => {
+            const next = new Set(prev);
+            next.delete(friendId);
+            return next;
+          });
+        },
+        onError: () => {
+          setProcessingUsers(prev => {
+            const next = new Set(prev);
+            next.delete(friendId);
+            return next;
+          });
+        }
+      }
+    );
+  };
+
+  const handleSendRequest = (friendId) => {
+    const status = friendshipStatus(friendId);
+    if (status !== 'none') return;
+
+    setProcessingUsers(prev => new Set(prev).add(friendId));
+    sendRequest(
+      { userId, friendId },
+      {
+        onSuccess: () => {
+          refetchPending();
+          setProcessingUsers(prev => {
+            const next = new Set(prev);
+            next.delete(friendId);
+            return next;
+          });
+        },
+        onError: () => {
+          setProcessingUsers(prev => {
+            const next = new Set(prev);
+            next.delete(friendId);
+            return next;
+          });
+        }
+      }
+    );
+  };
+
+  const isProcessing = (friendId) => processingUsers.has(friendId);
+
+  // ── Render helpers ────────────────────────────────────────────────────
+  const renderFriendsTab = () => (
     <div>
-      <h5 className="mb-3">Friends</h5>
+      <div className="d-flex align-items-center gap-2 mb-3">
+        <i className="bi bi-people-fill text-primary fs-4"></i>
+        <h6 className="mb-0 fw-bold">My Friends</h6>
+        <span className="badge bg-primary rounded-pill ms-auto">{friends.length}</span>
+      </div>
 
-      {/* TODO: replace with proper tab component */}
-
-      <h6>Friends List ({friends?.length ?? 0})</h6>
-      {friends?.length === 0 && <p className="text-muted">No friends yet.</p>}
-      {friends?.map((f) => (
-        <div key={f.friendId} className="d-flex align-items-center gap-2 mb-2">
-          <Avatar username={f.username} size={36} />
-          <span>{f.username}</span>
-          <button
-            className="btn btn-outline-danger btn-sm ms-auto"
-            disabled={removing}
-            onClick={() => remove({ userId, friendId: f.friendId })}
-          >
-            Remove
-          </button>
+      {loadingFriends ? (
+        <Loader size="sm" />
+      ) : friends.length === 0 ? (
+        <div className="text-center py-5">
+          <i className="bi bi-people text-muted" style={{ fontSize: '3rem' }}></i>
+          <p className="text-muted mt-3">You haven't added any friends yet.</p>
+          <p className="text-muted small">Use the "Find People" tab to connect with others.</p>
         </div>
-      ))}
-
-      <hr />
-
-      <h6>Pending Requests ({pending?.length ?? 0})</h6>
-      {/* TODO: render pending list with Accept/Decline */}
-      <p className="text-muted">TODO — pending request UI</p>
+      ) : (
+        <div className="d-flex flex-column gap-2">
+          {friends.map((f) => (
+            <div
+              key={f.friendshipId || f.friendId}
+              className="d-flex align-items-center gap-3 p-3 bg-white border rounded-3 shadow-sm hover-shadow transition"
+              style={{ transition: 'all 0.2s ease' }}
+              onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0.5rem 1rem rgba(0,0,0,0.15)'}
+              onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 .125rem .25rem rgba(0,0,0,0.075)'}
+            >
+              <Avatar username={f.username} size={44} />
+              <span className="flex-grow-1 fw-semibold text-dark">{f.username}</span>
+              <button
+                className="btn btn-outline-danger btn-sm d-flex align-items-center gap-1"
+                disabled={removing || isProcessing(f.friendId)}
+                onClick={() => handleRemoveFriend(f.friendId)}
+              >
+                {isProcessing(f.friendId) ? (
+                  <>
+                    <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    <span>Removing...</span>
+                  </>
+                ) : (
+                  <>
+                    <i className="bi bi-person-dash"></i>
+                    <span>Remove</span>
+                  </>
+                )}
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
-  )
+  );
+
+  const renderPendingTab = () => (
+    <div>
+      <div className="d-flex align-items-center gap-2 mb-3">
+        <i className="bi bi-clock-history text-warning fs-4"></i>
+        <h6 className="mb-0 fw-bold">Pending Requests</h6>
+        <span className="badge bg-warning text-dark rounded-pill ms-auto">{pending.length}</span>
+      </div>
+
+      {loadingPending ? (
+        <Loader size="sm" />
+      ) : pending.length === 0 ? (
+        <div className="text-center py-5">
+          <i className="bi bi-check-circle text-success" style={{ fontSize: '3rem' }}></i>
+          <p className="text-muted mt-3">All clear – no pending requests.</p>
+        </div>
+      ) : (
+        <div className="d-flex flex-column gap-2">
+          {pending.map((req) => (
+            <div
+              key={req.friendshipId || req.friendId}
+              className="d-flex align-items-center gap-3 p-3 bg-white border rounded-3 shadow-sm"
+            >
+              <Avatar username={req.username} size={44} />
+              <span className="flex-grow-1 fw-semibold text-dark">{req.username}</span>
+              <div className="d-flex gap-2">
+                <button
+                  className="btn btn-success btn-sm d-flex align-items-center gap-1"
+                  disabled={adding || isProcessing(req.friendId)}
+                  onClick={() => handleAcceptRequest(req.friendId)}
+                >
+                  {isProcessing(req.friendId) ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                      <span>Accepting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <i className="bi bi-check-lg"></i>
+                      <span>Accept</span>
+                    </>
+                  )}
+                </button>
+                <button
+                  className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1"
+                  disabled={removing || isProcessing(req.friendId)}
+                  onClick={() => handleDeclineRequest(req.friendId)}
+                >
+                  {isProcessing(req.friendId) ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                      <span>Declining...</span>
+                    </>
+                  ) : (
+                    <>
+                      <i className="bi bi-x-lg"></i>
+                      <span>Decline</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  const renderSearchTab = () => (
+    <div>
+      <div className="d-flex align-items-center gap-2 mb-3">
+        <i className="bi bi-search text-primary fs-4"></i>
+        <h6 className="mb-0 fw-bold">Find People</h6>
+      </div>
+
+      <div className="mb-4">
+        <div className="input-group">
+          <span className="input-group-text bg-white border-end-0">
+            <i className="bi bi-search text-muted"></i>
+          </span>
+          <input
+            type="text"
+            className="form-control border-start-0 ps-0"
+            placeholder="Search by username..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          {searchQuery && (
+            <button
+              className="btn btn-outline-secondary border-start-0"
+              onClick={() => setSearchQuery('')}
+            >
+              <i className="bi bi-x-lg"></i>
+            </button>
+          )}
+        </div>
+      </div>
+
+      {searching && <Loader size="sm" />}
+      {searchError && (
+        <div className="alert alert-danger d-flex align-items-center gap-2" role="alert">
+          <i className="bi bi-exclamation-triangle-fill"></i>
+          <span>Something went wrong with the search.</span>
+        </div>
+      )}
+
+      {!searching && debouncedQuery && searchResults.length === 0 && (
+        <div className="text-center py-5">
+          <i className="bi bi-person-x text-muted" style={{ fontSize: '3rem' }}></i>
+          <p className="text-muted mt-3">No users found for "{debouncedQuery}".</p>
+        </div>
+      )}
+
+      {!searching &&
+        searchResults.map((u) => {
+          const uid = getUserId(u);
+          if (!uid) return null;
+          const status = friendshipStatus(uid);
+          const processing = isProcessing(uid);
+          let actionButton = null;
+
+          if (status === 'self') {
+            actionButton = (
+              <span className="badge bg-secondary d-flex align-items-center gap-1">
+                <i className="bi bi-person"></i> You
+              </span>
+            );
+          } else if (status === 'friend') {
+            actionButton = (
+              <span className="badge bg-success d-flex align-items-center gap-1">
+                <i className="bi bi-check-circle"></i> Friend
+              </span>
+            );
+          }  else if (status === 'sent') {
+            actionButton = (
+              <button
+                className="btn btn-warning btn-sm"
+                disabled={ processing || addFriendMutation.isPending || cancelFriendMutation.isPending }
+                onClick={() => handleCancelRequest(uid) }
+              >
+                Cancel Request
+              </button>
+
+            );
+          } else if (status === 'pending') {
+            actionButton = (
+              <span className="badge bg-warning text-dark d-flex align-items-center gap-1">
+                {processing ? (
+                  <>
+                    <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <i className="bi bi-clock"></i> Pending
+                  </>
+                )}
+              </span>
+            );
+          } else {
+            actionButton = (
+              <button
+                className="btn btn-primary btn-sm d-flex align-items-center gap-1"
+                disabled={ processing || addFriendMutation.isPending || cancelFriendMutation.isPending }
+                onClick={() => handleSendRequest(uid)}
+              >
+                {processing ? (
+                  <>
+                    <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    Adding...
+                  </>
+                ) : (
+                  <>
+                    <i className="bi bi-person-plus"></i>
+                    <span>Add Friend</span>
+                  </>
+                )}
+              </button>
+            );
+          }
+
+          return (
+            <div
+              key={uid}
+              className="d-flex align-items-center gap-3 p-3 bg-white border rounded-3 shadow-sm mb-2 hover-shadow transition"
+              style={{ transition: 'all 0.2s ease' }}
+              onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0.5rem 1rem rgba(0,0,0,0.1)'}
+              onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 .125rem .25rem rgba(0,0,0,0.075)'}
+            >
+              <Avatar username={u.username} size={44} />
+              <span className="flex-grow-1 fw-semibold text-dark">{u.username}</span>
+              {actionButton}
+            </div>
+          );
+        })}
+    </div>
+  );
+
+  // ── Main render ──────────────────────────────────────────────────────
+  return (
+    <div className="friends-page">
+      <div className="d-flex align-items-center gap-2 mb-4">
+        <i className="bi bi-people-fill text-primary fs-2"></i>
+        <h4 className="mb-0 fw-bold">Friends</h4>
+      </div>
+
+      {/* Tabs – Pill style with icons */}
+      <ul className="nav nav-pills mb-4 gap-2">
+        <li className="nav-item">
+          <button
+            className={`nav-link d-flex align-items-center gap-2 rounded-pill px-4 ${
+              activeTab === 'friends' ? 'active bg-primary text-white' : 'text-muted bg-light'
+            }`}
+            onClick={() => setActiveTab('friends')}
+          >
+            <i className="bi bi-people"></i>
+            Friends
+            <span className="badge bg-white text-primary rounded-pill ms-1">{friends.length}</span>
+          </button>
+        </li>
+        <li className="nav-item">
+          <button
+            className={`nav-link d-flex align-items-center gap-2 rounded-pill px-4 ${
+              activeTab === 'pending' ? 'active bg-warning text-dark' : 'text-muted bg-light'
+            }`}
+            onClick={() => setActiveTab('pending')}
+          >
+            <i className="bi bi-clock-history"></i>
+            Pending
+            <span className="badge bg-dark text-white rounded-pill ms-1">{pending.length}</span>
+          </button>
+        </li>
+        <li className="nav-item">
+          <button
+            className={`nav-link d-flex align-items-center gap-2 rounded-pill px-4 ${
+              activeTab === 'search' ? 'active bg-primary text-white' : 'text-muted bg-light'
+            }`}
+            onClick={() => setActiveTab('search')}
+          >
+            <i className="bi bi-search"></i>
+            Find People
+          </button>
+        </li>
+      </ul>
+
+      {/* Tab panels */}
+      <div className="tab-content">
+        {activeTab === 'friends' && renderFriendsTab()}
+        {activeTab === 'pending' && renderPendingTab()}
+        {activeTab === 'search' && renderSearchTab()}
+      </div>
+    </div>
+  );
 }
