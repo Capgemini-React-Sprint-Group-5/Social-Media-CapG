@@ -11,6 +11,7 @@ import "./styles/components.css";
 import "./styles/animations.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
+import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
 const queryClient = new QueryClient({
   defaultOptions: {

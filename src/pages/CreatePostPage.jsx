@@ -24,10 +24,12 @@ export default function CreatePostPage() {
         .max(500)
         .required("Post content is required"),
     }),
-    onSubmit: (values) => {
+    onSubmit: (values,{resetForm}) => {
       createPost(
         { userId: currentUser.userId, content: values.content },
-        { onSuccess: () => navigate("/home") },
+        { onSuccess: () => {
+          resetForm();
+          navigate("/") },}
       );
     },
   });
