@@ -9,8 +9,11 @@ import App from "./App.jsx";
 import "./styles/theme.css";
 import "./styles/components.css";
 import "./styles/animations.css";
+import "./styles/group.css";
+import "./index.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
+import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
 const queryClient = new QueryClient({
   defaultOptions: {

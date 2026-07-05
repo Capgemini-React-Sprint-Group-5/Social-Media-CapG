@@ -51,3 +51,35 @@ export function useDeleteNotification() {
     },
   })
 }
+
+/**
+ * Mark every notification for a user as read.
+ * Usage:
+ *   const { mutate: markAllRead } = useMarkAllNotificationsRead()
+ *   markAllRead({ userId })
+ */
+export function useMarkAllNotificationsRead() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ userId }) => notifApi.markAllNotificationsRead(userId),
+    onSuccess: (_, { userId }) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.byUser(userId) })
+    },
+  })
+}
+
+/**
+ * Delete every notification for a user.
+ * Usage:
+ *   const { mutate: removeAll } = useDeleteAllNotifications()
+ *   removeAll({ userId })
+ */
+export function useDeleteAllNotifications() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ userId }) => notifApi.deleteAllNotifications(userId),
+    onSuccess: (_, { userId }) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.byUser(userId) })
+    },
+  })
+}

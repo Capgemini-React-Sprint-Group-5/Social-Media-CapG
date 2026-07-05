@@ -147,10 +147,10 @@ export default function GroupChatPage() {
               ) : (
                 messages.map((m) => (
                   <MessageBubble
-                    key={m.messageID || m.id}
+                    key={m.groupMessageID || m.messageID || m.id}
                     message={m}
                     currentUserId={userId}
-                    sender={userMap.get(Number(m.senderID))}
+                    sender={userMap.get(Number(m.senderID || m.userID))}
                     formatTime={formatTime}
                   />
                 ))
