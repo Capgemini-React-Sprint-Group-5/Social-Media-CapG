@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import Layout from './components/layout/Layout.jsx'
 import ProtectedRoute from './components/routes/ProtectedRoute.jsx'
 
+import LandingPage from './pages/LandingPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import RegisterPage from './pages/RegisterPage.jsx'
 import HomeFeedPage from './pages/HomeFeedPage.jsx'
@@ -18,13 +19,14 @@ export default function App() {
   return (
     <Routes>
       {/* Public routes */}
+      <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
 
       {/* Protected routes — all wrapped in Layout (Navbar + outlet) */}
       <Route element={<ProtectedRoute />}>
         <Route element={<Layout />}>
-          <Route path="/" element={<HomeFeedPage />} />
+          <Route path="/home" element={<HomeFeedPage />} />
           <Route path="/profile/:userId" element={<ProfilePage />} />
           <Route path="/post/create" element={<CreatePostPage />} />
           <Route path="/friends" element={<FriendsPage />} />

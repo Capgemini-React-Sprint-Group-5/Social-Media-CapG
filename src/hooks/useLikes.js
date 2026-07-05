@@ -33,7 +33,7 @@ export function useGivenLikes(userId) {
 
 
 export function useAddLike() {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
   return useMutation({
     // FIXED: Formats the exact path parameter endpoint required by posts.routes.js
     mutationFn: async ({ postId, userId }) => {
@@ -45,12 +45,11 @@ export function useAddLike() {
       queryClient.invalidateQueries({ queryKey: queryKeys.likes.byPost(variables.postId) })
       queryClient.invalidateQueries({ queryKey: ['posts'] })
     },
-  })
+  });
 }
 
-
 export function useRemoveLike() {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
   return useMutation({
     
     mutationFn: async ({ postId, likeId }) => {
