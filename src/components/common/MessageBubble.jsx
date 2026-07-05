@@ -6,8 +6,9 @@ import Avatar from './Avatar.jsx'
  * Aligns own messages to the right, and other users' messages to the left with an avatar.
  */
 export default function MessageBubble({ message, currentUserId, sender, formatTime }) {
-  const isOwn = Number(message.senderID) === Number(currentUserId)
-  const senderName = sender?.username || `User ${message.senderID}`
+  const senderId = message.senderID || message.userID
+  const isOwn = Number(senderId) === Number(currentUserId)
+  const senderName = sender?.username || `User ${senderId}`
 
   return (
     <div className={`chat-bubble-container ${isOwn ? 'own' : 'other'}`}>

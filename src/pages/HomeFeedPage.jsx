@@ -82,7 +82,7 @@ export default function HomeFeedPage() {
           <div className="feed-container">
             {posts.length === 0 ? (
               <div className="card glass-card border-0 text-center p-5 fade-up">
-                <div className="fs-1 text-muted mb-2">👋</div>
+                <div className="fs-1 text-muted mb-2"></div>
                 <h5 className="fw-semibold text-dark mb-1">Your feed is looking empty</h5>
                 <p className="text-muted small mx-auto" style={{ maxWidth: '340px' }}>
                   Connect with friends using the Search panel to start curating your custom dashboard timeline!
