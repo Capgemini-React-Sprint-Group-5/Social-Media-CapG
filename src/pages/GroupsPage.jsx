@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
 import { selectCurrentUser } from '../store/index.js'
-import { useAllGroups, useJoinGroup, useLeaveGroup, useCreateGroup, useDeleteGroup } from '../hooks/useGroups.js'
+import { useAllGroups, useJoinGroup, useLeaveGroup, useCreateGroup, useDeleteGroup, useAllGroupMessages } from '../hooks/useGroups.js'
 import Loader from '../components/common/Loader.jsx'
 import Modal from '../components/common/Modal.jsx'
 import GroupCard from '../components/common/GroupCard.jsx'
@@ -26,6 +26,7 @@ export default function GroupsPage() {
   const [selectedCategory, setSelectedCategory] = useState('All Categories')
 
   const { data: groups, isLoading } = useAllGroups()
+  const { data: allGroupMessages, isLoading: isLoadingMessages } = useAllGroupMessages()
   const { mutate: join, isPending: joining } = useJoinGroup()
   const { mutate: leave, isPending: leaving } = useLeaveGroup()
   const { mutate: create, isPending: creating } = useCreateGroup()
@@ -64,68 +65,126 @@ export default function GroupsPage() {
     },
   })
 
-  if (isLoading) return <Loader />
 
-  // Filter groups into joined and not joined categories
-  const currentUserIdNum = Number(userId)
-  const myGroups = []
-  const discoverGroups = []
+  // Filter groups into joined and not joined categories (memoized)
+  const { myGroups, discoverGroups } = useMemo(() => {
+    const myG = []
+    const discG = []
+    const currentUserIdNum = Number(userId)
+    if (Array.isArray(groups)) {
+      groups.forEach((g) => {
+        const members = (g.members || [g.adminID]).map(Number)
+        const isMember = members.includes(currentUserIdNum)
+        if (isMember) {
+          myG.push(g)
+        } else {
+          discG.push(g)
+        }
+      })
+    }
+    return { myGroups: myG, discoverGroups: discG }
+  }, [groups, userId])
 
-  if (Array.isArray(groups)) {
-    groups.forEach((g) => {
-      const members = (g.members || [g.adminID]).map(Number)
-      const isMember = members.includes(currentUserIdNum)
-      if (isMember) {
-        myGroups.push(g)
-      } else {
-        discoverGroups.push(g)
+  // Memoize search filters
+  const filteredMyGroups = useMemo(() => {
+    return myGroups.filter((g) => g.groupName.toLowerCase().includes(searchQuery.toLowerCase()))
+  }, [myGroups, searchQuery])
+
+  const filteredDiscoverGroups = useMemo(() => {
+    return discoverGroups.filter((g) => g.groupName.toLowerCase().includes(searchQuery.toLowerCase()))
+  }, [discoverGroups, searchQuery])
+
+  const shownGroups = useMemo(() => {
+    return activeTab === 'my-groups' ? filteredMyGroups : filteredDiscoverGroups
+  }, [activeTab, filteredMyGroups, filteredDiscoverGroups])
+
+  // Memoize Recommended Groups
+  const recommendedGroups = useMemo(() => {
+    return discoverGroups.slice(0, 3).map((g) => {
+      const name = g.groupName
+      const id = g.id || g.groupID
+      const membersList = g.members || [Number(g.adminID)]
+      const count = membersList.length
+
+      let iconClass = 'bi-people-fill'
+      let colorClass = 'gaming'
+      const lowerName = name.toLowerCase()
+
+      if (lowerName.includes('code') || lowerName.includes('dev') || lowerName.includes('programming') || lowerName.includes('tech') || lowerName.includes('wizard')) {
+        iconClass = 'bi-box-fill'
+        colorClass = 'react'
+      } else if (lowerName.includes('cook') || lowerName.includes('food') || lowerName.includes('dessert') || lowerName.includes('club') || lowerName.includes('eat')) {
+        iconClass = 'bi-filetype-js'
+        colorClass = 'js'
+      } else if (lowerName.includes('gaming')) {
+        iconClass = 'bi-controller'
+        colorClass = 'gaming'
+      } else if (lowerName.includes('fit') || lowerName.includes('well') || lowerName.includes('sport')) {
+        iconClass = 'bi-heart-pulse-fill'
+        colorClass = 'react'
+      }
+
+      return {
+        id,
+        name,
+        members: count,
+        colorClass,
+        iconClass
       }
     })
-  }
+  }, [discoverGroups])
 
-  const filterBySearch = (list) => {
-    return list.filter((g) => {
-      return g.groupName.toLowerCase().includes(searchQuery.toLowerCase())
-    })
-  }
+  // Memoize Callback Handlers for GroupCard components
+  const handleJoin = useCallback((groupId) => {
+    join({ groupId, userId })
+  }, [join, userId])
 
-  const filteredMyGroups = filterBySearch(myGroups)
-  const filteredDiscoverGroups = filterBySearch(discoverGroups)
+  const handleLeave = useCallback((groupId) => {
+    leave({ groupId, userId })
+  }, [leave, userId])
 
-  const shownGroups = activeTab === 'my-groups' ? filteredMyGroups : filteredDiscoverGroups
+  const handleDelete = useCallback((groupId) => {
+    setGroupToDelete(groupId)
+  }, [])
 
-  const recommendedGroups = discoverGroups.slice(0, 3).map((g) => {
-    const name = g.groupName
-    const id = g.id || g.groupID
-    const membersList = g.members || [Number(g.adminID)]
-    const count = membersList.length
+  const handleNavigateToChat = useCallback((groupId) => {
+    navigate(`/groups/${groupId}/chat`)
+  }, [navigate])
 
-    let iconClass = 'bi-people-fill'
-    let colorClass = 'gaming'
-    const lowerName = name.toLowerCase()
+  const statsMetrics = useMemo(() => {
+    const joinedCount = myGroups.length
+    const joinedGroupIds = new Set(myGroups.map(g => String(g.groupID || g.id)))
+    const messages = allGroupMessages || []
+    
+    // Active today: count joined groups that have messages
+    const activeGroupIds = new Set(
+      messages
+        .filter(m => joinedGroupIds.has(String(m.groupID)))
+        .map(m => String(m.groupID))
+    )
+    const activeToday = activeGroupIds.size
 
-    if (lowerName.includes('code') || lowerName.includes('dev') || lowerName.includes('programming') || lowerName.includes('tech') || lowerName.includes('wizard')) {
-      iconClass = 'bi-box-fill'
-      colorClass = 'react'
-    } else if (lowerName.includes('cook') || lowerName.includes('food') || lowerName.includes('dessert') || lowerName.includes('club') || lowerName.includes('eat')) {
-      iconClass = 'bi-filetype-js'
-      colorClass = 'js'
-    } else if (lowerName.includes('gaming')) {
-      iconClass = 'bi-controller'
-      colorClass = 'gaming'
-    } else if (lowerName.includes('fit') || lowerName.includes('well') || lowerName.includes('sport')) {
-      iconClass = 'bi-heart-pulse-fill'
-      colorClass = 'react'
-    }
+    // Messages: count of messages inside the user's joined groups
+    const totalMessages = messages.filter(m => joinedGroupIds.has(String(m.groupID))).length
+
+    // Streak: count of unique days the current user has sent messages in any group
+    const userMessages = messages.filter(m => String(m.userID) === String(userId))
+    const uniqueDays = new Set(
+      userMessages
+        .map(m => m.timestamp ? m.timestamp.split('T')[0] : null)
+        .filter(Boolean)
+    )
+    const streak = uniqueDays.size || (joinedCount > 0 ? 1 : 0)
 
     return {
-      id,
-      name,
-      members: count,
-      colorClass,
-      iconClass
+      joinedCount,
+      activeToday,
+      totalMessages,
+      streak
     }
-  })
+  }, [myGroups, allGroupMessages, userId])
+
+  if (isLoading || isLoadingMessages) return <Loader />
 
   return (
     <div className="container-fluid page-container">
@@ -157,7 +216,7 @@ export default function GroupsPage() {
               <i className="bi bi-people-fill"></i>
             </div>
             <div>
-              <h3 className="fw-bold mb-0 text-dark">{myGroups.length}</h3>
+              <h3 className="fw-bold mb-0 text-dark">{statsMetrics.joinedCount}</h3>
               <span className="text-dark fw-semibold small d-block" style={{ fontSize: '0.82rem' }}>Groups Joined</span>
               <span className="text-muted small" style={{ fontSize: '0.72rem' }}>Communities</span>
             </div>
@@ -171,7 +230,7 @@ export default function GroupsPage() {
               <i className="bi bi-graph-up-arrow"></i>
             </div>
             <div>
-              <h3 className="fw-bold mb-0 text-dark">5</h3>
+              <h3 className="fw-bold mb-0 text-dark">{statsMetrics.activeToday}</h3>
               <span className="text-dark fw-semibold small d-block" style={{ fontSize: '0.82rem' }}>Active Today</span>
               <span className="text-success small" style={{ fontSize: '0.72rem', fontWeight: 600 }}>New updates</span>
             </div>
@@ -185,7 +244,7 @@ export default function GroupsPage() {
               <i className="bi bi-chat-text-fill"></i>
             </div>
             <div>
-              <h3 className="fw-bold mb-0 text-dark">127</h3>
+              <h3 className="fw-bold mb-0 text-dark">{statsMetrics.totalMessages}</h3>
               <span className="text-dark fw-semibold small d-block" style={{ fontSize: '0.82rem' }}>Messages</span>
               <span className="text-primary small" style={{ fontSize: '0.72rem', fontWeight: 600 }}>Across groups</span>
             </div>
@@ -199,7 +258,7 @@ export default function GroupsPage() {
               <i className="bi bi-fire"></i>
             </div>
             <div>
-              <h3 className="fw-bold mb-0 text-dark">3</h3>
+              <h3 className="fw-bold mb-0 text-dark">{statsMetrics.streak}</h3>
               <span className="text-dark fw-semibold small d-block" style={{ fontSize: '0.82rem' }}>Streak</span>
               <span className="text-warning small" style={{ fontSize: '0.72rem', fontWeight: 600 }}>Days active</span>
             </div>
@@ -285,12 +344,10 @@ export default function GroupsPage() {
                     group={g}
                     currentUserId={userId}
                     activeTab={activeTab}
-                    onJoin={(groupId) => join({ groupId, userId })}
-                    onLeave={(groupId) => leave({ groupId, userId })}
-                    onDelete={(groupId) => {
-                      setGroupToDelete(groupId)
-                    }}
-                    onNavigateToChat={(groupId) => navigate(`/groups/${groupId}/chat`)}
+                    onJoin={handleJoin}
+                    onLeave={handleLeave}
+                    onDelete={handleDelete}
+                    onNavigateToChat={handleNavigateToChat}
                     isJoining={joining}
                     isLeaving={leaving}
                     isDeleting={deleting}

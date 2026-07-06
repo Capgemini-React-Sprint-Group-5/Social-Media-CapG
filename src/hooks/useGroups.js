@@ -139,3 +139,11 @@ export function useSendGroupMessage() {
     },
   });
 }
+
+/** Fetch all group messages from database. */
+export function useAllGroupMessages() {
+  return useQuery({
+    queryKey: ['groups', 'messages', 'all'],
+    queryFn: groupsApi.getAllGroupMessages,
+  });
+}
