@@ -1,4 +1,4 @@
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
 import { selectCurrentUser } from "../store/index.js";
 import { useFriendsFeed } from "../hooks/usePosts.js";
@@ -7,22 +7,19 @@ import Loader from "../components/common/Loader.jsx";
 import PostCard from "../components/common/PostCard.jsx";
 import CreatePostPage from "./CreatePostPage.jsx";
 import Avatar from "../components/common/Avatar.jsx";
+import { setActiveThread } from "../store/slices/uiSlice.js";
 
 export default function HomeFeedPage() {
+  const dispatch = useDispatch();
   const currentUser = useSelector(selectCurrentUser);
   // Preserves your original exact Redux lookup key
   const userId = currentUser?.userId;
 
   // Custom API Aggregators
   const { posts = [], isLoading, isError } = useFriendsFeed();
-  const { data: rawFriends = [] } = useFriends(userId);
+  const { data: acceptedFriends = [], isLoading: loadingFriends } = useFriends(userId);
 
-  // FILTER SIDEBAR DECK: Restrict sidebar visibility and status counters strictly to accepted matches
-  const acceptedFriends = Array.isArray(rawFriends)
-    ? rawFriends.filter((friend) => friend.status === "accepted")
-    : [];
-
-  if (isLoading) return <Loader />;
+  if (isLoading || loadingFriends) return <Loader />;
   if (isError)
     return (
       <div className="alert alert-danger shadow-sm rounded-3 m-3">
@@ -169,8 +166,9 @@ export default function HomeFeedPage() {
 
                   return (
                     <Link
-                      key={friend.friendshipID || friend.id}
+                      key={friend.friendshipId || friend.id}
                       to={`/messages/${targetFriendId}`}
+                      onClick={() => dispatch(setActiveThread(targetFriendId))}
                       className="d-flex align-items-center gap-3 py-2.5 px-3 rounded-4 text-decoration-none hover-scale border border-light bg-white bg-opacity-50 transition-all shadow-sm"
                     >
                       <div className="position-relative flex-shrink-0">
