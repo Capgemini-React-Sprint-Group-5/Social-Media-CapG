@@ -24,3 +24,15 @@ transition:.25s;
 transform:scale(1.02);
 
 }
+.post-highlight {
+    animation: postHighlightPulse 1.8s ease-out;
+}
+
+@keyframes postHighlightPulse {
+    0% {
+        box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.45);
+    }
+    100% {
+        box-shadow: 0 0 0 4px rgba(79, 70, 229, 0);
+    }
+}
