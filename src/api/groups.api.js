@@ -52,3 +52,7 @@ export const getFriendsGroups = async (userId) =>
 // GET /Groups/:groupId/friends?userId=  (falls back to all members if userId omitted)
 export const getFriendsInGroup = async (groupId, userId) =>
   (await client.get(`/Groups/${groupId}/friends`, { params: { userId } })).data;
+
+// GET /Groups/messages/all
+export const getAllGroupMessages = async () =>
+  (await client.get("/Groups/messages/all")).data;

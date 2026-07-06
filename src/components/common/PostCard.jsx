@@ -108,7 +108,11 @@ export default function PostCard({ post }) {
   const authorName = post?.user?.username || post?.username || `User #${post?.userID}`
 
   return (
-    <Card style={{ padding: '1.5rem', marginBottom: '1rem' }} className="border-0 shadow-sm rounded-4">
+    <Card
+      id={currentPostId ? `post-${currentPostId}` : undefined}
+      style={{ padding: '1.5rem', marginBottom: '1rem' }}
+      className="border-0 shadow-sm rounded-4"
+    >
       {/* Streamlined Horizontal Header Section */}
       <div className="d-flex align-items-center justify-content-between mb-3">
         <div className="d-flex align-items-center gap-2">

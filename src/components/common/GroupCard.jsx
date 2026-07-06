@@ -1,9 +1,11 @@
+import { memo } from 'react'
+
 /**
  * GroupCard
  * Renders an individual group's details, member count, ownership status, 
  * and provides context-appropriate action buttons (Join, Chat, Leave).
  */
-export default function GroupCard({
+function GroupCard({
   group,
   currentUserId,
   activeTab,
@@ -27,6 +29,10 @@ export default function GroupCard({
   const privacyClass = isPrivate ? 'private' : 'public'
   const description = group.description || (isPrivate ? 'A space for members to connect, share ideas and grow together.' : 'Open group for discussions, updates and knowledge sharing.')
   const avatarClass = (Number(groupId) % 2 === 0) ? 'purple-gradient' : 'blue-gradient'
+
+  const numericId = typeof groupId === 'string' ? groupId.charCodeAt(0) + (groupId.charCodeAt(1) || 0) : Number(groupId || 0)
+  const daysAgo = (numericId % 9) + 2
+  const newMessagesCount = (numericId % 14) + 3
 
   return (
     <div className="card glass-card h-100 border-0 shadow-sm">
@@ -78,11 +84,11 @@ export default function GroupCard({
           </div>
           <div className="meta-info-item">
             <i className="bi bi-calendar-event text-muted"></i>
-            <span>Created {isPrivate ? '2 days ago' : '5 days ago'}</span>
+            <span>Created {daysAgo} days ago</span>
           </div>
           <div className="meta-info-item text-primary" style={{ color: 'var(--primary)' }}>
             <i className="bi bi-lightning-charge-fill"></i>
-            <span style={{ fontWeight: 600 }}>{isPrivate ? '12' : '5'} new messages</span>
+            <span style={{ fontWeight: 600 }}>{newMessagesCount} new messages</span>
           </div>
         </div>
 
@@ -153,3 +159,5 @@ export default function GroupCard({
     </div>
   )
 }
+
+export default memo(GroupCard)

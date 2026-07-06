@@ -1,7 +1,7 @@
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { useQueries } from "@tanstack/react-query";
 import { useSelector } from "react-redux";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { selectCurrentUser } from "../store/index.js";
 import { queryKeys } from "../queryKeys.js";
 import * as usersApi from "../api/users.api.js";
@@ -19,6 +19,8 @@ import EditProfileModal from "../components/common/EditProfileModal.jsx";
  */
 export default function ProfilePage() {
   const { userId } = useParams();
+  const [searchParams] = useSearchParams();
+  const highlightPostId = searchParams.get("highlightPost");
   const currentUser = useSelector(selectCurrentUser);
   const isOwnProfile = currentUser?.userId === userId;
   const [activeTab, setActiveTab] = useState("posts");
@@ -48,6 +50,17 @@ export default function ProfilePage() {
       },
     ],
   });
+
+  useEffect(() => {
+    if (!highlightPostId || !postsQuery.data || postsQuery.data.length === 0) return;
+    setActiveTab("posts");
+    const el = document.getElementById(`post-${highlightPostId}`);
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    el.classList.add("post-highlight");
+    const timer = setTimeout(() => el.classList.remove("post-highlight"), 1800);
+    return () => clearTimeout(timer);
+  }, [highlightPostId, postsQuery.data]);
 
   if (userQuery.isLoading) return <Loader />;
 

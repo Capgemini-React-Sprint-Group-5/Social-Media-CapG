@@ -47,4 +47,106 @@
   background: rgba(13, 110, 253, 0.5);
 }
 
+/* Group Message Bubbles & Layout */
+.chat-container {
+  height: calc(75vh - 70px);
+  display: flex;
+  flex-direction: column;
+}
 
+.chat-bubble-container {
+  display: flex;
+  margin-bottom: 12px;
+  width: 100%;
+}
+
+.chat-bubble-container.own {
+  justify-content: flex-end;
+}
+
+.chat-bubble-container.other {
+  justify-content: flex-start;
+}
+
+.chat-bubble {
+  max-width: 75%;
+  padding: 10px 14px;
+  border-radius: 16px;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  word-break: break-word;
+}
+
+.chat-bubble-container.own .chat-bubble {
+  background: var(--primary-gradient);
+  color: white;
+  border-bottom-right-radius: 4px;
+}
+
+.chat-bubble-container.other .chat-bubble {
+  background: #f1f3f5;
+  color: #212529;
+  border-bottom-left-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
+.chat-bubble-meta {
+  font-size: 0.75rem;
+  margin-top: 4px;
+  display: block;
+  opacity: 0.8;
+  text-align: right;
+}
+
+.chat-bubble-sender {
+  font-size: 0.78rem;
+  font-weight: 600;
+  margin-bottom: 2px;
+  display: block;
+  color: #495057;
+}
+
+.chat-bubble-container.own .chat-bubble-sender {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Members Sidebar styles */
+.member-item {
+  transition: background-color 0.2s ease;
+  border-radius: 8px;
+}
+
+.member-item:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+/* Tabs layout customization */
+.custom-nav-tabs .nav-link {
+  border: none;
+  color: #6c757d;
+  font-weight: 500;
+  padding: 10px 16px;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.custom-nav-tabs .nav-link.active {
+  color: #0d6efd;
+  background: transparent;
+  border-bottom-color: #0d6efd;
+}
+
+/* Notifications list row hover */
+.notif-row:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* Interactive badges */
+.admin-badge {
+  background-color: rgba(13, 110, 253, 0.1);
+  color: #0d6efd;
+  font-size: 0.7rem;
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+}
