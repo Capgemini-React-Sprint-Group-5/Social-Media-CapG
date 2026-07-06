@@ -13,14 +13,3 @@
     }
 
 }
-.hover-scale{
-
-transition:.25s;
-
-}
-
-.hover-scale:hover{
-
-transform:scale(1.02);
-
-}
