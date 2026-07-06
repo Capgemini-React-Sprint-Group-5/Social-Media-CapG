@@ -2,9 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { selectCurrentUser } from '../store/index.js'
-import { 
-  useUserSearch 
-} from '../hooks/useUsers.js'
+import { useUserSearch } from '../hooks/useUsers.js'
 import { 
   useSendFriendRequest, 
   useFriends, 
@@ -76,9 +74,12 @@ export default function SearchPage() {
   } = useUserSearch(debouncedQuery)
 
   // ── Group search (client-side filtering) ─────────────────────────────
-  const filteredGroups = allGroups.filter((g) =>
-    g.groupName.toLowerCase().includes(debouncedQuery.toLowerCase())
-  )
+  const filteredGroups =
+    debouncedQuery.trim() === ""
+      ? []
+      : allGroups.filter((g) =>
+        g.groupName.toLowerCase().includes(debouncedQuery.toLowerCase())
+      )
 
   // ── Helper: Get user ID from any user object ──────────────────────────
   const getUserId = (user) => user?.userID ?? user?.userId ?? user?.id
@@ -158,10 +159,20 @@ export default function SearchPage() {
 
   // ── Render ──────────────────────────────────────────────────────────────
   return (
-    <div className="container-fluid page-container" style={{ maxWidth: '800px' }}>
-      {/* Header */}
+    <div className="container-fluid page-container" style={{ maxWidth: '800px', paddingTop: '20px'}}>
+      {/* ─── Header with gradient search icon ─── */}
       <div className="d-flex align-items-center gap-2 mb-4">
-        <i className="bi bi-search text-primary fs-2"></i>
+        <div 
+          className="rounded-circle d-flex align-items-center justify-content-center" 
+          style={{ 
+            width: 44, 
+            height: 44, 
+            background: 'var(--primary-gradient)', 
+            color: 'white' 
+          }}
+        >
+          <i className="bi bi-search text-white fs-4"></i>
+        </div>
         <h4 className="mb-0 fw-bold">Search</h4>
       </div>
 
@@ -350,9 +361,19 @@ export default function SearchPage() {
                   onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0.5rem 1rem rgba(0,0,0,0.1)'}
                   onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 .125rem .25rem rgba(0,0,0,0.075)'}
                 >
-                  <div className="bg-primary-subtle rounded-circle d-flex align-items-center justify-content-center" style={{ width: 44, height: 44 }}>
-                    <i className="bi bi-collection-fill text-primary fs-4"></i>
+                  {/* Group icon – gradient background + white icon */}
+                  <div 
+                    className="rounded-circle d-flex align-items-center justify-content-center" 
+                    style={{ 
+                      width: 44, 
+                      height: 44, 
+                      background: 'var(--primary-gradient)', 
+                      color: 'white' 
+                    }}
+                  >
+                    <i className="bi bi-collection-fill text-white fs-4"></i>
                   </div>
+
                   <div className="flex-grow-1">
                     <span 
                       className="fw-semibold text-dark d-block"
