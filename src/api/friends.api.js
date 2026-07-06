@@ -62,3 +62,11 @@ export const getFriendMessages = async (friendshipId) =>
 // POST /Friends/:friendshipId/messages/send
 export const sendFriendMessage = (friendshipId, messageData) =>
   client.post(`/Friends/${friendshipId}/messages/send`, messageData);
+
+export const getSentRequests = async (userId) =>
+  (await client.get(`/Users/${userId}/friend-requests/sent`)).data;
+
+export const cancelFriendRequest = (userId, friendId) =>
+  client.delete(
+    `/Users/${userId}/friend-requests/cancel/${friendId}`
+  );

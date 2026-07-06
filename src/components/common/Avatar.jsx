@@ -1,8 +1,3 @@
-/**
- * Avatar
- * Circular user avatar. Falls back to initials if no image src.
- * Usage: <Avatar src={user.profile_picture} username={user.username} size={40} />
- */
 export default function Avatar({ src, username = '?', size = 40 }) {
   const initials = username.slice(0, 2).toUpperCase()
 
