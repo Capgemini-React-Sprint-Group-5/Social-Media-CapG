@@ -54,6 +54,25 @@
       0 18px 40px rgba(79,70,229,.12);
 
 }
+
+.btn-primary,
+.bg-primary,
+.text-bg-primary,
+.page-link.active,
+.dropdown-item.active,
+.list-group-item.active {
+    background: linear-gradient(90deg, #6d4df6, #7c4dff) !important;
+    border-color: #6d4df6 !important;
+}
+
+.text-primary {
+    color: #6d4df6 !important;
+}
+
+.border-primary {
+    border-color: #6d4df6 !important;
+}
+
 body{
 
     margin:0;

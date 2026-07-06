@@ -450,7 +450,7 @@ export default function FriendsPage() {
 
   // ── Main render ──────────────────────────────────────────────────────
   return (
-    <div className="friends-page">
+    <div className="friends-page px-2 py-2">
       {/* ── Header ── */}
       <div className="d-flex align-items-center gap-2 mb-4">
         <i className="bi bi-people-fill text-primary fs-2"></i>
