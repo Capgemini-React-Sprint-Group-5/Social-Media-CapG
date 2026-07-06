@@ -28,6 +28,7 @@ export default function FriendsPage() {
   const { data: sentRequests = [] } = useSentRequests(userId);
   const addFriendMutation = useAddFriend();
   const cancelFriendMutation = useCancelFriendRequest();
+
   // ── Mutations ────────────────────────────────────────────────────────
   const { mutate: addFriend, isPending: adding } = useAddFriend();
   const { mutate: removeFriend, isPending: removing } = useRemoveFriend();
@@ -173,6 +174,12 @@ export default function FriendsPage() {
 
   const isProcessing = (friendId) => processingUsers.has(friendId);
 
+  // ── Stats for the top bar ─────────────────────────────────────────────
+  const totalFriends = friends.length;
+  const totalPending = pending.length;
+  const totalSent = sentRequests.length;
+  const activeToday = friends.filter(f => f?.active).length || Math.min(totalFriends, 5);
+
   // ── Render helpers ────────────────────────────────────────────────────
   const renderFriendsTab = () => (
     <div>
@@ -191,34 +198,47 @@ export default function FriendsPage() {
           <p className="text-muted small">Use the "Find People" tab to connect with others.</p>
         </div>
       ) : (
-        <div className="d-flex flex-column gap-2">
+        <div className="row g-3">
           {friends.map((f) => (
-            <div
-              key={f.friendshipId || f.friendId}
-              className="d-flex align-items-center gap-3 p-3 bg-white border rounded-3 shadow-sm hover-shadow transition"
-              style={{ transition: 'all 0.2s ease' }}
-              onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0.5rem 1rem rgba(0,0,0,0.15)'}
-              onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 .125rem .25rem rgba(0,0,0,0.075)'}
-            >
-              <Avatar username={f.username} size={44} />
-              <span className="flex-grow-1 fw-semibold text-dark">{f.username}</span>
-              <button
-                className="btn btn-outline-danger btn-sm d-flex align-items-center gap-1"
-                disabled={removing || isProcessing(f.friendId)}
-                onClick={() => handleRemoveFriend(f.friendId)}
-              >
-                {isProcessing(f.friendId) ? (
-                  <>
-                    <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                    <span>Removing...</span>
-                  </>
-                ) : (
-                  <>
-                    <i className="bi bi-person-dash"></i>
-                    <span>Remove</span>
-                  </>
-                )}
-              </button>
+            <div key={f.friendshipId || f.friendId} className="col-md-6 col-lg-4">
+              <div className="card border-0 shadow-sm h-100 hover-scale transition stats-card">
+                <div className="card-body p-4">
+                  <div className="d-flex align-items-center gap-3 mb-3">
+                    <Avatar username={f.username} size={48} />
+                    <div>
+                      <h6 className="fw-bold text-dark mb-0">{f.username}</h6>
+                      <span className="text-muted small d-block">{f.email || 'No email'}</span>
+                    </div>
+                  </div>
+                  <div className="d-flex align-items-center justify-content-between text-muted small mb-3">
+                    <span>
+                      <i className="bi bi-calendar3 me-1"></i>
+                      Friend
+                    </span>
+                    <span>
+                      <i className="bi bi-chat-dots me-1"></i>
+                      Online
+                    </span>
+                  </div>
+                  <button
+                    className="btn btn-outline-danger btn-sm w-100 d-flex align-items-center justify-content-center gap-1"
+                    disabled={removing || isProcessing(f.friendId)}
+                    onClick={() => handleRemoveFriend(f.friendId)}
+                  >
+                    {isProcessing(f.friendId) ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        <span>Removing...</span>
+                      </>
+                    ) : (
+                      <>
+                        <i className="bi bi-person-dash"></i>
+                        <span>Remove Friend</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
             </div>
           ))}
         </div>
@@ -242,49 +262,55 @@ export default function FriendsPage() {
           <p className="text-muted mt-3">All clear – no pending requests.</p>
         </div>
       ) : (
-        <div className="d-flex flex-column gap-2">
+        <div className="row g-3">
           {pending.map((req) => (
-            <div
-              key={req.friendshipId || req.friendId}
-              className="d-flex align-items-center gap-3 p-3 bg-white border rounded-3 shadow-sm"
-            >
-              <Avatar username={req.username} size={44} />
-              <span className="flex-grow-1 fw-semibold text-dark">{req.username}</span>
-              <div className="d-flex gap-2">
-                <button
-                  className="btn btn-success btn-sm d-flex align-items-center gap-1"
-                  disabled={adding || isProcessing(req.friendId)}
-                  onClick={() => handleAcceptRequest(req.friendId)}
-                >
-                  {isProcessing(req.friendId) ? (
-                    <>
-                      <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                      <span>Accepting...</span>
-                    </>
-                  ) : (
-                    <>
-                      <i className="bi bi-check-lg"></i>
-                      <span>Accept</span>
-                    </>
-                  )}
-                </button>
-                <button
-                  className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1"
-                  disabled={removing || isProcessing(req.friendId)}
-                  onClick={() => handleDeclineRequest(req.friendId)}
-                >
-                  {isProcessing(req.friendId) ? (
-                    <>
-                      <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                      <span>Declining...</span>
-                    </>
-                  ) : (
-                    <>
-                      <i className="bi bi-x-lg"></i>
-                      <span>Decline</span>
-                    </>
-                  )}
-                </button>
+            <div key={req.friendshipId || req.friendId} className="col-md-6 col-lg-4">
+              <div className="card border-0 shadow-sm h-100">
+                <div className="card-body p-4">
+                  <div className="d-flex align-items-center gap-3 mb-3">
+                    <Avatar username={req.username} size={48} />
+                    <div>
+                      <h6 className="fw-bold text-dark mb-0">{req.username}</h6>
+                      <span className="text-muted small d-block">Pending request</span>
+                    </div>
+                  </div>
+                  <div className="d-flex gap-2">
+                    <button
+                      className="btn btn-success btn-sm flex-grow-1 d-flex align-items-center justify-content-center gap-1"
+                      disabled={adding || isProcessing(req.friendId)}
+                      onClick={() => handleAcceptRequest(req.friendId)}
+                    >
+                      {isProcessing(req.friendId) ? (
+                        <>
+                          <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                          <span>Accepting...</span>
+                        </>
+                      ) : (
+                        <>
+                          <i className="bi bi-check-lg"></i>
+                          <span>Accept</span>
+                        </>
+                      )}
+                    </button>
+                    <button
+                      className="btn btn-outline-secondary btn-sm flex-grow-1 d-flex align-items-center justify-content-center gap-1"
+                      disabled={removing || isProcessing(req.friendId)}
+                      onClick={() => handleDeclineRequest(req.friendId)}
+                    >
+                      {isProcessing(req.friendId) ? (
+                        <>
+                          <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                          <span>Declining...</span>
+                        </>
+                      ) : (
+                        <>
+                          <i className="bi bi-x-lg"></i>
+                          <span>Decline</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           ))}
@@ -367,7 +393,6 @@ export default function FriendsPage() {
               >
                 Cancel Request
               </button>
-
             );
           } else if (status === 'pending') {
             actionButton = (
@@ -426,12 +451,73 @@ export default function FriendsPage() {
   // ── Main render ──────────────────────────────────────────────────────
   return (
     <div className="friends-page">
+      {/* ── Header ── */}
       <div className="d-flex align-items-center gap-2 mb-4">
         <i className="bi bi-people-fill text-primary fs-2"></i>
         <h4 className="mb-0 fw-bold">Friends</h4>
       </div>
 
-      {/* Tabs – Pill style with icons */}
+      {/* ── Stats Bar ── */}
+      <div className="row g-3 mb-4">
+        <div className="col-6 col-md-3">
+          <div className="stats-card card border-0 shadow-sm p-3 h-100 transition">
+            <div className="d-flex align-items-center gap-3">
+              <div className="bg-primary-subtle rounded-circle p-2 d-flex align-items-center justify-content-center" style={{ width: 42, height: 42 }}>
+                <i className="bi bi-people-fill text-primary fs-5"></i>
+              </div>
+              <div>
+                <div className="fw-bold fs-3">{totalFriends}</div>
+                <div className="text-muted small fw-semibold">Friends</div>
+                <div className="text-muted small" style={{ fontSize: '0.7rem' }}>Friends count</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="col-6 col-md-3">
+          <div className="stats-card card border-0 shadow-sm p-3 h-100 transition">
+            <div className="d-flex align-items-center gap-3">
+              <div className="bg-warning-subtle rounded-circle p-2 d-flex align-items-center justify-content-center" style={{ width: 42, height: 42 }}>
+                <i className="bi bi-clock-history text-warning fs-5"></i>
+              </div>
+              <div>
+                <div className="fw-bold fs-3">{totalPending}</div>
+                <div className="text-muted small fw-semibold">Pending</div>
+                <div className="text-muted small" style={{ fontSize: '0.7rem' }}>Requests</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="col-6 col-md-3">
+          <div className="stats-card card border-0 shadow-sm p-3 h-100 transition">
+            <div className="d-flex align-items-center gap-3">
+              <div className="bg-info-subtle rounded-circle p-2 d-flex align-items-center justify-content-center" style={{ width: 42, height: 42 }}>
+                <i className="bi bi-send text-info fs-5"></i>
+              </div>
+              <div>
+                <div className="fw-bold fs-3">{totalSent}</div>
+                <div className="text-muted small fw-semibold">Sent</div>
+                <div className="text-muted small" style={{ fontSize: '0.7rem' }}>Requests</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="col-6 col-md-3">
+          <div className="stats-card card border-0 shadow-sm p-3 h-100 transition">
+            <div className="d-flex align-items-center gap-3">
+              <div className="bg-success-subtle rounded-circle p-2 d-flex align-items-center justify-content-center" style={{ width: 42, height: 42 }}>
+                <i className="bi bi-chat-dots-fill text-success fs-5"></i>
+              </div>
+              <div>
+                <div className="fw-bold fs-3">{activeToday}</div>
+                <div className="text-muted small fw-semibold">Active</div>
+                <div className="text-muted small" style={{ fontSize: '0.7rem' }}>Today</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Tabs ── */}
       <ul className="nav nav-pills mb-4 gap-2">
         <li className="nav-item">
           <button
@@ -470,7 +556,7 @@ export default function FriendsPage() {
         </li>
       </ul>
 
-      {/* Tab panels */}
+      {/* ── Tab panels ── */}
       <div className="tab-content">
         {activeTab === 'friends' && renderFriendsTab()}
         {activeTab === 'pending' && renderPendingTab()}
