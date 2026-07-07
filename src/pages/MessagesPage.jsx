@@ -233,6 +233,10 @@ export default function MessagesPage() {
                     ?.username
                 }
                 size={32}
+                src={
+                  friends?.find((f) => Number(f.friendId) === Number(activeId))
+                    ?.profile_picture
+                }
               />
               <span className="fw-bold">
                 {friends?.find((f) => Number(f.friendId) === Number(activeId))
