@@ -10,6 +10,7 @@ import "./styles/theme.css";
 import "./styles/components.css";
 import "./styles/animations.css";
 import "./styles/group.css";
+import "./styles/profile.css";
 import "./index.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";

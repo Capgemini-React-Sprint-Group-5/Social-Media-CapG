@@ -55,7 +55,9 @@ export default function EditProfileModal({ isOpen, onClose, user }) {
       <form onSubmit={formik.handleSubmit} noValidate>
         {/* Username */}
         <div className="mb-3">
-          <label className="form-label fw-semibold">Username</label>
+          <label className="form-label fw-semibold" htmlFor="username">
+            Username
+          </label>
           <input
             id="username"
             name="username"
@@ -78,7 +80,9 @@ export default function EditProfileModal({ isOpen, onClose, user }) {
 
         {/* Email */}
         <div className="mb-3">
-          <label className="form-label fw-semibold">Email</label>
+          <label className="form-label fw-semibold" htmlFor="email">
+            Email
+          </label>
           <input
             id="email"
             name="email"
@@ -99,7 +103,9 @@ export default function EditProfileModal({ isOpen, onClose, user }) {
 
         {/* Profile picture URL */}
         <div className="mb-4">
-          <label className="form-label fw-semibold">Profile Picture URL</label>
+          <label className="form-label fw-semibold" htmlFor="profile_picture">
+            Profile Picture URL
+          </label>
           <input
             id="profile_picture"
             name="profile_picture"
@@ -127,7 +133,7 @@ export default function EditProfileModal({ isOpen, onClose, user }) {
         <div className="d-flex justify-content-end gap-2">
           <button
             type="button"
-            className="btn btn-outline-secondary"
+            className="btn btn-outline-secondary rounded-pill px-3"
             onClick={onClose}
             disabled={isPending}
           >
@@ -135,7 +141,8 @@ export default function EditProfileModal({ isOpen, onClose, user }) {
           </button>
           <button
             type="submit"
-            className="btn btn-success"
+            className="btn text-white rounded-pill px-3"
+            style={{ background: "var(--primary-gradient)", border: "none" }}
             disabled={isPending}
           >
             {isPending ? (

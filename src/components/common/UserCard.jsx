@@ -1,21 +1,6 @@
 import { Link } from "react-router-dom";
 import Avatar from "./Avatar.jsx";
 
-/*
- * Props:
- *   user      — { userID | userId | id, username, profile_picture }
- *   size      — avatar size in px (default 40)
- *   subtitle  — small text under the username (e.g. a formatted timestamp)
- *   action    — right-aligned slot for buttons (Add Friend / Accept /
- *               Decline / Remove — whatever the caller needs)
- *   onClick   — optional override; defaults to navigating to /profile/:id
- *               via the wrapping Link. Pass this if you need a click
- *               side-effect (e.g. closing a modal) alongside navigation.
- *   linkTo    — set false to render a plain (non-navigating) row, e.g.
- *               inside SearchPage where the whole row is already the
- *               question of "is this me?"
- */
-
 export default function UserCard({
   user,
   size = 40,
@@ -35,15 +20,24 @@ export default function UserCard({
         username={user?.username}
         size={size}
       />
-      <div className="ms-2 flex-grow-1 min-w-0">
+      <div className="ms-3 flex-grow-1 min-w-0">
         <div
           className="fw-bold text-dark text-truncate"
           style={{ lineHeight: 1.2 }}
         >
           {username}
         </div>
+        <div
+          className="text-muted text-truncate"
+          style={{ fontSize: "0.75rem" }}
+        >
+          @{username.toLowerCase()}
+        </div>
         {subtitle && (
-          <div className="text-muted small" style={{ fontSize: "0.75rem" }}>
+          <div
+            className="text-muted small text-truncate"
+            style={{ fontSize: "0.75rem" }}
+          >
             {subtitle}
           </div>
         )}
@@ -52,7 +46,14 @@ export default function UserCard({
   );
 
   return (
-    <div className={`d-flex align-items-center ${className}`}>
+    <div
+      className={`d-flex align-items-center bg-white p-3 shadow-sm hover-scale ${className}`}
+      style={{
+        borderRadius: "var(--radius-lg)",
+        border: "1px solid var(--border)",
+        transition: "box-shadow .2s ease, border-color .2s ease",
+      }}
+    >
       {linkTo ? (
         <Link
           to={`/profile/${userId}`}

@@ -10,8 +10,8 @@ export default function Avatar({ src, username = '?', size = 40 }) {
     lineHeight:     `${size}px`,
     textAlign:      'center',
     display:        'inline-block',
-    backgroundColor: '#6c757d',
-    color:          '#fff',
+    backgroundColor: 'var(--bs-secondary)',
+    color:          'var(--bs-white, #fff)',
     fontWeight:     600,
     flexShrink:     0,
   }
