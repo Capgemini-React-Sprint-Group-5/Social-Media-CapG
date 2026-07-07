@@ -1,23 +1,24 @@
-.page-container{
-    max-width:900px;
-    margin:auto;
-    padding:30px 16px;
+.page-container {
+  max-width: 900px;
+
+  margin: auto;
+
+  padding: 30px 16px;
 }
-.feed-container{
-    max-width:760px;
-    margin:auto;
+.feed-container {
+  max-width: 760px;
+
+  margin: auto;
 }
-.section-title{
-    font-size:30px;
-    font-weight:700;
-    margin-bottom:8px;
+.section-title {
+  font-size: 30px;
+
+  font-weight: 700;
+
+  margin-bottom: 8px;
 }
-.section-subtitle{
-    color:var(--text-secondary);
-    margin-bottom:30px;
-}
-@media (max-width: 640px) {
-  .page-container {
-    padding: 16px 12px;
-  }
+.section-subtitle {
+  color: var(--text-secondary);
+
+  margin-bottom: 30px;
 }

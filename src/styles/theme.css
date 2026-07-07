@@ -1,58 +1,45 @@
 /* SocialSphere Theme */
 
-:root{
-
+:root {
   /* ===== Colors ===== */
 
-  --primary:#4F46E5;
-  --primary-light:#6366F1;
-  --secondary:#8B5CF6;
+  --primary: #4f46e5;
+  --primary-light: #6366f1;
+  --secondary: #8b5cf6;
 
-  --success:#10B981;
-  --warning:#F59E0B;
-  --danger:#EF4444;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
 
-  --background:#E9ECEF;
+  --background: #e9ecef;
 
-  --surface:#FFFFFF;
+  --surface: #ffffff;
 
-  --text:#1F2937;
-  --text-secondary:#6B7280;
+  --text: #1f2937;
+  --text-secondary: #6b7280;
 
-  --border:#E5E7EB;
+  --border: #e5e7eb;
 
   /* ===== Gradients ===== */
 
-  --primary-gradient:
-      linear-gradient(
-      135deg,
-      #4F46E5,
-      #8B5CF6);
+  --primary-gradient: linear-gradient(135deg, #4f46e5, #8b5cf6);
 
-  --secondary-gradient:
-      linear-gradient(
-      135deg,
-      #38BDF8,
-      #4F46E5);
+  --secondary-gradient: linear-gradient(135deg, #38bdf8, #4f46e5);
 
   /* ===== Border Radius ===== */
 
-  --radius-sm:10px;
-  --radius-md:16px;
-  --radius-lg:22px;
-  --radius-xl:30px;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-xl: 30px;
 
   /* ===== Shadows ===== */
 
-  --shadow-sm:
-      0 3px 10px rgba(0,0,0,.05);
+  --shadow-sm: 0 3px 10px rgba(0, 0, 0, 0.05);
 
-  --shadow-md:
-      0 10px 25px rgba(0,0,0,.08);
+  --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.08);
 
-  --shadow-lg:
-      0 18px 40px rgba(79,70,229,.12);
-
+  --shadow-lg: 0 18px 40px rgba(79, 70, 229, 0.12);
 }
 
 .btn-primary,
@@ -61,62 +48,47 @@
 .page-link.active,
 .dropdown-item.active,
 .list-group-item.active {
-    background: linear-gradient(90deg, #6d4df6, #7c4dff) !important;
-    border-color: #6d4df6 !important;
+  background: linear-gradient(90deg, #6d4df6, #7c4dff) !important;
+  border-color: #6d4df6 !important;
 }
 
 .text-primary {
-    color: #6d4df6 !important;
+  color: #6d4df6 !important;
 }
 
 .border-primary {
-    border-color: #6d4df6 !important;
+  border-color: #6d4df6 !important;
 }
 
-body{
+body {
+  font-family: "Inter", "Segoe UI", sans-serif;
 
-    margin:0;
+  background: var(--background);
 
-    font-family:
-    "Inter",
-    "Segoe UI",
-    sans-serif;
+  color: var(--text);
 
-    background:var(--background);
+  min-height: 100vh;
 
-    color:var(--text);
+  -webkit-font-smoothing: antialiased;
 
-    min-height:100vh;
+  -moz-osx-font-smoothing: grayscale;
 
-    -webkit-font-smoothing: antialiased;
-
-    -moz-osx-font-smoothing: grayscale;
-
-    text-rendering: optimizeLegibility;
-
+  text-rendering: optimizeLegibility;
 }
-::selection{
-
-    background: rgba(79, 70, 229, 0.2);
-    color: var(--primary);
-
+::selection {
+  background: rgba(79, 70, 229, 0.2);
+  color: var(--primary);
 }
-::-webkit-scrollbar{
-
-    width:8px;
-
+::-webkit-scrollbar {
+  width: 8px;
 }
 
-::-webkit-scrollbar-thumb{
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
 
-    background:#CBD5E1;
-
-    border-radius:20px;
-
+  border-radius: 20px;
 }
 
-::-webkit-scrollbar-thumb:hover{
-
-    background:#94A3B8;
-
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }

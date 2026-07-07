@@ -1,0 +1,193 @@
+.profile-scroll-area {
+  height: 100vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.profile-sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: var(--radius-lg);
+  padding: 24px 24px 0;
+  margin: 24px 0 0;
+  transition:
+    box-shadow 0.25s ease,
+    padding 0.25s ease;
+  box-shadow: var(--shadow-sm);
+}
+
+.profile-sticky-header.is-scrolled {
+  box-shadow: var(--shadow-md);
+  padding-top: 14px;
+}
+
+.profile-sticky-header.is-scrolled .profile-name {
+  font-size: 1.05rem;
+}
+
+.profile-sticky-header.is-scrolled .profile-email {
+  display: none;
+}
+
+.profile-header-inner {
+  display: flex;
+  align-items: center;
+  padding-bottom: 20px;
+}
+
+/* Signature element: a soft conic ring around the avatar, in the
+   app's own gradient, echoing an "active profile" story ring. */
+.profile-avatar-ring {
+  flex-shrink: 0;
+  border-radius: 50%;
+  padding: 3px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary-gradient);
+  transition: padding 0.25s ease;
+}
+
+.profile-avatar-ring img,
+.profile-avatar-ring span {
+  border: 3px solid #fff;
+}
+
+.profile-name {
+  transition: font-size 0.2s ease;
+  letter-spacing: -0.2px;
+}
+
+.profile-stat-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+}
+
+.profile-stat-line strong {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.profile-stat-dot {
+  opacity: 0.6;
+}
+
+.profile-email {
+  margin-top: 2px;
+}
+
+.profile-actions {
+  align-self: flex-start;
+}
+
+.btn-profile-pill {
+  border: none;
+  border-radius: 999px;
+  padding: 0.5rem 1.1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
+}
+
+.btn-profile-pill:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+.btn-profile-pill-ghost {
+  background: #f1f0fe;
+  color: var(--primary);
+}
+
+.btn-profile-pill-ghost:hover {
+  background: #e5e3fd;
+}
+
+.btn-profile-pill-solid {
+  background: var(--primary-gradient);
+  color: #fff;
+}
+
+.btn-profile-pill-solid:hover {
+  box-shadow: 0 8px 18px rgba(79, 70, 229, 0.25);
+}
+
+/* Tabs with a sliding underline indicator (2 tabs = 50% each) */
+.profile-tabs {
+  position: relative;
+  display: flex;
+  border-top: 1px solid var(--border);
+}
+
+.profile-tab {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 14px 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  transition: color 0.2s ease;
+}
+
+.profile-tab.active {
+  color: var(--primary);
+}
+
+.profile-tab-count {
+  color: inherit;
+  opacity: 0.65;
+  font-weight: 500;
+}
+
+.profile-tab-indicator {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 50%;
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: var(--primary-gradient);
+  transition: transform 0.28s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+/* Feed body beneath the sticky bar */
+.profile-feed {
+  padding-top: 20px;
+  padding-bottom: 40px;
+}
+
+.profile-feed-item {
+  margin-bottom: 16px;
+}
+
+.profile-empty-state {
+  text-align: center;
+  padding: 48px 0;
+}
+
+@media (max-width: 640px) {
+  .profile-header-inner {
+    align-items: flex-start;
+  }
+
+  .profile-actions {
+    flex-direction: column;
+  }
+
+  .btn-profile-pill {
+    padding: 0.45rem 0.85rem;
+    font-size: 0.8rem;
+  }
+}
