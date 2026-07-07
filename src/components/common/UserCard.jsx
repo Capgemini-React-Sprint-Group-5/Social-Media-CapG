@@ -27,8 +27,17 @@ export default function UserCard({
         >
           {username}
         </div>
+        <div
+          className="text-muted text-truncate"
+          style={{ fontSize: "0.75rem" }}
+        >
+          @{username.toLowerCase()}
+        </div>
         {subtitle && (
-          <div className="text-muted small" style={{ fontSize: "0.75rem" }}>
+          <div
+            className="text-muted small text-truncate"
+            style={{ fontSize: "0.75rem" }}
+          >
             {subtitle}
           </div>
         )}
