@@ -18,6 +18,7 @@ export default function LoginPage() {
       username: Yup.string().required("Username is required"),
       password: Yup.string().required("Password is required"),
     }),
+    // inside formik onSubmit handler in pages/LoginPage.jsx
     onSubmit: (values) => {
       setLoginError("");
       login(values, {
@@ -28,8 +29,9 @@ export default function LoginPage() {
           );
           navigate("/home");
         },
-        onError: (err) => {
-          setLoginError(err?.message || "Invalid username or password.");
+        onError: () => {
+          // Completely wipes status codes/network errors and overwrites with your precise text
+          setLoginError("Invalid credentials.");
         },
       });
     },
@@ -188,6 +190,37 @@ export default function LoginPage() {
                 )}
               </button>
             </form>
+            {loginError && (
+              <div 
+                className="d-flex align-items-center gap-3 p-3 mb-4 border-0 text-start"
+                style={{
+                  backgroundColor: "rgba(239, 68, 68, 0.08)", // Subtle crimson backdrop hue
+                  borderLeft: "4px solid #ef4444",           // Left indicator stripe accent
+                  borderRadius: "12px",
+                  animation: "fadeUp 0.25s ease-out forwards"
+                }}
+              >
+                <div 
+                  className="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0"
+                  style={{
+                    width: "32px",
+                    height: "32px",
+                    backgroundColor: "rgba(239, 68, 68, 0.15)",
+                    color: "#ef4444"
+                  }}
+                >
+                  <i className="bi bi-exclamation-circle-fill" style={{ fontSize: "0.95rem" }}></i>
+                </div>
+                <div className="flex-grow-1">
+                  <h6 className="fw-bold mb-0 text-dark" style={{ fontSize: "0.88rem" }}>
+                    Authentication Failed
+                  </h6>
+                  <p className="text-secondary mb-0 small" style={{ fontSize: "0.78rem" }}>
+                    {loginError} {/* Always renders "Invalid credentials." */}
+                  </p>
+                </div>
+              </div>
+            )}
 
             <div className="text-center mt-4">
               <span className="text-muted">Don't have an account?</span>{" "}
