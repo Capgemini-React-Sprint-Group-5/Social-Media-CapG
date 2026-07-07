@@ -281,10 +281,15 @@ export default function PostCard({ post }) {
       >
         <div className="text-center py-2">
           <div
-            className="mx-auto mb-3 d-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary rounded-circle"
-            style={{ width: "56px", height: "56px" }}
+            className="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle"
+            style={{ 
+              width: "56px", 
+              height: "56px", 
+              backgroundColor: "rgba(13, 110, 253, 0.12)", // Soft blue background patch
+              color: "#0d6efd" // Deep Blue primary icon color
+            }}
           >
-            <i className="bi bi-cloud-arrow-up fs-3"></i>
+            <i className="bi bi-cloud-arrow-up-fill fs-3"></i>
           </div>
           <p
             className="text-secondary-emphasis fw-medium mb-1 px-2"
