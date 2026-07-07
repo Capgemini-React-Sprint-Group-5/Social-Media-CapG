@@ -35,7 +35,7 @@ describe('GroupCard', () => {
   it('renders group name and member count', () => {
     render(<GroupCard {...defaultProps} />)
     expect(screen.getByText('Test Group')).toBeInTheDocument()
-    expect(screen.getByText('3 members')).toBeInTheDocument()
+    expect(screen.getByText('3 Members')).toBeInTheDocument()
   })
 
   it('shows admin badge when current user is the owner', () => {
