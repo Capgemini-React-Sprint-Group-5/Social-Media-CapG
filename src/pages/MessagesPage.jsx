@@ -1,12 +1,17 @@
-import { useParams } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
-import { selectCurrentUser, selectActiveThread } from '../store/index.js';
-import { setActiveThread } from '../store/slices/uiSlice.js';
-import { useFriends } from '../hooks/useFriends.js';
-import { useConversation, useSendMessage, useUpdateMessage, useDeleteMessage } from '../hooks/useMessages.js';
-import Loader from '../components/common/Loader.jsx';
-import Avatar from '../components/common/Avatar.jsx';
-import { useState, useRef, useEffect } from 'react';
+import { useParams } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { selectCurrentUser, selectActiveThread } from "../store/index.js";
+import { setActiveThread } from "../store/slices/uiSlice.js";
+import { useFriends } from "../hooks/useFriends.js";
+import {
+  useConversation,
+  useSendMessage,
+  useUpdateMessage,
+  useDeleteMessage,
+} from "../hooks/useMessages.js";
+import Loader from "../components/common/Loader.jsx";
+import Avatar from "../components/common/Avatar.jsx";
+import { useState, useRef, useEffect } from "react";
 
 export default function MessagesPage() {
   const { otherUserId: routeUserId } = useParams();
@@ -14,26 +19,33 @@ export default function MessagesPage() {
   const currentUser = useSelector(selectCurrentUser);
   const activeId = useSelector(selectActiveThread) || routeUserId;
   const userId = currentUser?.userId;
-  const [text, setText] = useState('');
+  const [text, setText] = useState("");
   const messagesEndRef = useRef(null);
 
   // Queries & Mutations
   const { data: friends, isLoading: loadingFriends } = useFriends(userId);
-  const { data: messages, isLoading: loadingThread } = useConversation(userId, activeId);
+  const { data: messages, isLoading: loadingThread } = useConversation(
+    userId,
+    activeId,
+  );
   const { mutate: send, isPending: sending } = useSendMessage();
   const { mutate: updateMessage, isPending: updating } = useUpdateMessage();
   const { mutate: deleteMessage, isPending: deleting } = useDeleteMessage();
 
   // Scroll to bottom when messages change
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   // Handlers
   const handleSend = () => {
     if (!text.trim() || !activeId) return;
-    send({ userId, otherUserId: activeId, messageData: { message_text: text } });
-    setText('');
+    send({
+      userId,
+      otherUserId: activeId,
+      messageData: { message_text: text },
+    });
+    setText("");
   };
 
   const handleUpdate = (messageId, newText) => {
@@ -46,19 +58,22 @@ export default function MessagesPage() {
   };
 
   const handleDelete = (messageId) => {
-    if (window.confirm('Are you sure you want to delete this message?')) {
+    if (window.confirm("Are you sure you want to delete this message?")) {
       deleteMessage({ messageId, userId, otherUserId: activeId });
     }
   };
 
   // Format timestamp
   const formatTime = (timestamp) => {
-    if (!timestamp || timestamp === 'NOW()') return 'Just now';
+    if (!timestamp || timestamp === "NOW()") return "Just now";
     try {
       const date = new Date(timestamp);
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      return date.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
     } catch {
-      return 'Just now';
+      return "Just now";
     }
   };
 
@@ -83,14 +98,17 @@ export default function MessagesPage() {
 
     return (
       <div
-        className={`d-flex ${isOwn ? 'justify-content-end' : 'justify-content-start'} mb-2`}
-        style={{ maxWidth: '75%', alignSelf: isOwn ? 'flex-end' : 'flex-start' }}
+        className={`d-flex ${isOwn ? "justify-content-end" : "justify-content-start"} mb-2`}
+        style={{
+          maxWidth: "75%",
+          alignSelf: isOwn ? "flex-end" : "flex-start",
+        }}
       >
         <div
           className={`position-relative p-2 rounded-3 shadow-sm ${
-            isOwn ? 'bg-primary text-white' : 'bg-light text-dark border'
+            isOwn ? "bg-primary text-white" : "bg-light text-dark border"
           }`}
-          style={{ wordBreak: 'break-word', minWidth: '60px' }}
+          style={{ wordBreak: "break-word", minWidth: "60px" }}
         >
           {isEditing ? (
             <div className="d-flex flex-column gap-1">
@@ -114,20 +132,20 @@ export default function MessagesPage() {
                   onClick={handleSaveEdit}
                   disabled={updating || !editText.trim()}
                 >
-                  {updating ? 'Saving...' : 'Save'}
+                  {updating ? "Saving..." : "Save"}
                 </button>
               </div>
             </div>
           ) : (
             <>
-              <span className="fw-light" style={{ fontSize: '0.9rem' }}>
+              <span className="fw-light" style={{ fontSize: "0.9rem" }}>
                 {message.message_text}
               </span>
               <div
                 className={`d-flex align-items-center gap-1 mt-1 ${
-                  isOwn ? 'text-white-50' : 'text-muted'
+                  isOwn ? "text-white-50" : "text-muted"
                 }`}
-                style={{ fontSize: '0.65rem' }}
+                style={{ fontSize: "0.65rem" }}
               >
                 <span>{formatTime(message.timestamp)}</span>
                 {isOwn && (
@@ -135,7 +153,9 @@ export default function MessagesPage() {
                     <span className="mx-1">·</span>
                     <button
                       className="btn btn-link p-0 text-decoration-none"
-                      style={{ color: isOwn ? 'rgba(255,255,255,0.7)' : '#6c757d' }}
+                      style={{
+                        color: isOwn ? "rgba(255,255,255,0.7)" : "#6c757d",
+                      }}
                       onClick={() => setIsEditing(true)}
                       disabled={updating}
                     >
@@ -143,7 +163,9 @@ export default function MessagesPage() {
                     </button>
                     <button
                       className="btn btn-link p-0 text-decoration-none"
-                      style={{ color: isOwn ? 'rgba(255,255,255,0.7)' : '#dc3545' }}
+                      style={{
+                        color: isOwn ? "rgba(255,255,255,0.7)" : "#dc3545",
+                      }}
                       onClick={() => handleDelete(message.messageID)}
                       disabled={deleting}
                     >
@@ -162,11 +184,11 @@ export default function MessagesPage() {
   // ─── Main Render ──────────────────────────────────────────────────────
 
   return (
-    <div className="d-flex gap-3" style={{ height: '75vh' }}>
+    <div className="d-flex gap-3" style={{ height: "75vh" }}>
       {/* Left panel — friend list */}
       <div
         className="border rounded-3 p-2 bg-white shadow-sm"
-        style={{ width: 260, overflowY: 'auto' }}
+        style={{ width: 260, overflowY: "auto" }}
       >
         <h6 className="mb-3 fw-bold d-flex align-items-center gap-2">
           <i className="bi bi-chat-dots-fill text-primary"></i>
@@ -182,13 +204,17 @@ export default function MessagesPage() {
               key={f.friendId}
               className={`d-flex align-items-center gap-2 p-2 rounded-3 mb-1 cursor-pointer transition ${
                 Number(activeId) === Number(f.friendId)
-                  ? 'bg-primary text-white'
-                  : 'hover-bg-light'
+                  ? "bg-primary text-white"
+                  : "hover-bg-light"
               }`}
-              style={{ cursor: 'pointer', transition: 'background 0.15s' }}
+              style={{ cursor: "pointer", transition: "background 0.15s" }}
               onClick={() => dispatch(setActiveThread(f.friendId))}
             >
-              <Avatar username={f.username} size={32} />
+              <Avatar
+                src={f?.profile_picture}
+                username={f.username}
+                size={32}
+              />
               <span className="text-truncate fw-semibold">{f.username}</span>
             </div>
           ))
@@ -202,11 +228,19 @@ export default function MessagesPage() {
           <div className="p-3 border-bottom bg-light rounded-top-3">
             <div className="d-flex align-items-center gap-2">
               <Avatar
-                username={friends?.find((f) => Number(f.friendId) === Number(activeId))?.username}
+                username={
+                  friends?.find((f) => Number(f.friendId) === Number(activeId))
+                    ?.username
+                }
                 size={32}
+                src={
+                  friends?.find((f) => Number(f.friendId) === Number(activeId))
+                    ?.profile_picture
+                }
               />
               <span className="fw-bold">
-                {friends?.find((f) => Number(f.friendId) === Number(activeId))?.username || 'User'}
+                {friends?.find((f) => Number(f.friendId) === Number(activeId))
+                  ?.username || "User"}
               </span>
             </div>
           </div>
@@ -216,14 +250,14 @@ export default function MessagesPage() {
         <div className="flex-grow-1 p-3 overflow-auto d-flex flex-column">
           {!activeId && (
             <div className="text-center text-muted mt-5">
-              <i className="bi bi-chat-dots" style={{ fontSize: '3rem' }}></i>
+              <i className="bi bi-chat-dots" style={{ fontSize: "3rem" }}></i>
               <p className="mt-3">Select a conversation to start messaging.</p>
             </div>
           )}
           {loadingThread && activeId && <Loader size="sm" />}
           {messages?.length === 0 && activeId && (
             <div className="text-center text-muted mt-5">
-              <i className="bi bi-chat" style={{ fontSize: '2rem' }}></i>
+              <i className="bi bi-chat" style={{ fontSize: "2rem" }}></i>
               <p className="mt-2">No messages yet. Say hello!</p>
             </div>
           )}
@@ -246,7 +280,9 @@ export default function MessagesPage() {
                 placeholder="Type a message…"
                 value={text}
                 onChange={(e) => setText(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
+                onKeyDown={(e) =>
+                  e.key === "Enter" && !e.shiftKey && handleSend()
+                }
                 disabled={sending}
               />
               <button
@@ -255,7 +291,11 @@ export default function MessagesPage() {
                 disabled={sending || !text.trim()}
               >
                 {sending ? (
-                  <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                  <span
+                    className="spinner-border spinner-border-sm"
+                    role="status"
+                    aria-hidden="true"
+                  ></span>
                 ) : (
                   <>
                     <i className="bi bi-send-fill"></i>

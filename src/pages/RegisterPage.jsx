@@ -40,13 +40,7 @@ export default function RegisterPage() {
         onSuccess: (data) => {
           // Store session — adjust field names to match actual API response
           const userId = data?.userID || data?.userId || data?.id;
-          dispatch(
-            setUser({
-              userId: userId,
-              username: values.username,
-              email: values.email,
-            }),
-          );
+          dispatch(setUser({ ...user, userId }));
           navigate("/home");
         },
       });
@@ -140,9 +134,7 @@ export default function RegisterPage() {
               {/* Username */}
 
               <div className="mb-3">
-                <label className="form-label fw-semibold">
-                  Username
-                </label>
+                <label className="form-label fw-semibold">Username</label>
 
                 <input
                   id="username"
@@ -150,8 +142,7 @@ export default function RegisterPage() {
                   type="text"
                   placeholder="Enter username"
                   className={`form-control ${
-                    formik.touched.username &&
-                    formik.errors.username
+                    formik.touched.username && formik.errors.username
                       ? "is-invalid"
                       : ""
                   }`}
@@ -165,20 +156,17 @@ export default function RegisterPage() {
                   autoComplete="username"
                 />
 
-                {formik.touched.username &&
-                  formik.errors.username && (
-                    <div className="invalid-feedback">
-                      {formik.errors.username}
-                    </div>
-                  )}
+                {formik.touched.username && formik.errors.username && (
+                  <div className="invalid-feedback">
+                    {formik.errors.username}
+                  </div>
+                )}
               </div>
 
               {/* Email */}
 
               <div className="mb-3">
-                <label className="form-label fw-semibold">
-                  Email
-                </label>
+                <label className="form-label fw-semibold">Email</label>
 
                 <input
                   id="email"
@@ -186,8 +174,7 @@ export default function RegisterPage() {
                   type="email"
                   placeholder="Enter email"
                   className={`form-control ${
-                    formik.touched.email &&
-                    formik.errors.email
+                    formik.touched.email && formik.errors.email
                       ? "is-invalid"
                       : ""
                   }`}
@@ -201,20 +188,15 @@ export default function RegisterPage() {
                   autoComplete="email"
                 />
 
-                {formik.touched.email &&
-                  formik.errors.email && (
-                    <div className="invalid-feedback">
-                      {formik.errors.email}
-                    </div>
-                  )}
+                {formik.touched.email && formik.errors.email && (
+                  <div className="invalid-feedback">{formik.errors.email}</div>
+                )}
               </div>
 
               {/* Password */}
 
               <div className="mb-3">
-                <label className="form-label fw-semibold">
-                  Password
-                </label>
+                <label className="form-label fw-semibold">Password</label>
 
                 <input
                   id="password"
@@ -222,8 +204,7 @@ export default function RegisterPage() {
                   type="password"
                   placeholder="Enter password"
                   className={`form-control ${
-                    formik.touched.password &&
-                    formik.errors.password
+                    formik.touched.password && formik.errors.password
                       ? "is-invalid"
                       : ""
                   }`}
@@ -237,12 +218,11 @@ export default function RegisterPage() {
                   autoComplete="new-password"
                 />
 
-                {formik.touched.password &&
-                  formik.errors.password && (
-                    <div className="invalid-feedback">
-                      {formik.errors.password}
-                    </div>
-                  )}
+                {formik.touched.password && formik.errors.password && (
+                  <div className="invalid-feedback">
+                    {formik.errors.password}
+                  </div>
+                )}
               </div>
 
               {/* Confirm Password */}
@@ -307,13 +287,8 @@ export default function RegisterPage() {
             </form>
 
             <div className="text-center mt-4">
-              <span className="text-muted">
-                Already have an account?
-              </span>{" "}
-              <Link
-                to="/login"
-                className="fw-semibold text-decoration-none"
-              >
+              <span className="text-muted">Already have an account?</span>{" "}
+              <Link to="/login" className="fw-semibold text-decoration-none">
                 Login
               </Link>
             </div>
