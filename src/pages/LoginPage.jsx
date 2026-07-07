@@ -24,9 +24,7 @@ export default function LoginPage() {
       login(values, {
         onSuccess: (user) => {
           const userId = user?.userID || user?.userId || user?.id;
-          dispatch(
-            setUser({ userId, username: user.username, email: user.email }),
-          );
+          dispatch(setUser({ ...user, userId }));
           navigate("/home");
         },
         onError: () => {
@@ -191,31 +189,40 @@ export default function LoginPage() {
               </button>
             </form>
             {loginError && (
-              <div 
+              <div
                 className="d-flex align-items-center gap-3 p-3 mb-4 border-0 text-start"
                 style={{
                   backgroundColor: "rgba(239, 68, 68, 0.08)", // Subtle crimson backdrop hue
-                  borderLeft: "4px solid #ef4444",           // Left indicator stripe accent
+                  borderLeft: "4px solid #ef4444", // Left indicator stripe accent
                   borderRadius: "12px",
-                  animation: "fadeUp 0.25s ease-out forwards"
+                  animation: "fadeUp 0.25s ease-out forwards",
                 }}
               >
-                <div 
+                <div
                   className="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0"
                   style={{
                     width: "32px",
                     height: "32px",
                     backgroundColor: "rgba(239, 68, 68, 0.15)",
-                    color: "#ef4444"
+                    color: "#ef4444",
                   }}
                 >
-                  <i className="bi bi-exclamation-circle-fill" style={{ fontSize: "0.95rem" }}></i>
+                  <i
+                    className="bi bi-exclamation-circle-fill"
+                    style={{ fontSize: "0.95rem" }}
+                  ></i>
                 </div>
                 <div className="flex-grow-1">
-                  <h6 className="fw-bold mb-0 text-dark" style={{ fontSize: "0.88rem" }}>
+                  <h6
+                    className="fw-bold mb-0 text-dark"
+                    style={{ fontSize: "0.88rem" }}
+                  >
                     Authentication Failed
                   </h6>
-                  <p className="text-secondary mb-0 small" style={{ fontSize: "0.78rem" }}>
+                  <p
+                    className="text-secondary mb-0 small"
+                    style={{ fontSize: "0.78rem" }}
+                  >
                     {loginError} {/* Always renders "Invalid credentials." */}
                   </p>
                 </div>
